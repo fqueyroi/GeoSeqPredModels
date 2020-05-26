@@ -13,6 +13,8 @@ file_path = ''.join([os.path.dirname(__file__), '/..', '/data/LargeCalgaryCorpus
 # sequences = ReadWriteUtils.readTextByLines(file_path)
 sequence = ReadWriteUtils.readText(file_path)
 
+## TODO: write specific import methods for each dataset ?
+
 
 training, testing = ReadWriteUtils.cutText(sequence, 0.5)
 alphabet = ReadWriteUtils.symbols([sequence])

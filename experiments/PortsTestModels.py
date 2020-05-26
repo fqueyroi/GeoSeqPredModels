@@ -11,7 +11,11 @@ import HONModel
 import ReadWriteUtils
 
 len_test = 3
-## TODO: create file with evaluation functions
+
+## TODO: write specific code for import methods for each dataset ?
+## TODO: write to output simple statistics on loaded sequences
+##       ie number, min/max/mean length, distribution of length etc.
+
 file_path = ''.join([os.path.dirname(__file__), '/..', '/data/Lloyds_maritime/apr2009_oct2009/portseq_apr2009_oct2009.csv'])
 place_file_path = ''.join([os.path.dirname(__file__), '/..', '/data/Lloyds_maritime/table_places.csv'])
 locations = ReadWriteUtils.readLocations(place_file_path,4,6,7)
@@ -47,6 +51,8 @@ def averageProbNextKSymbols(model, test_contexts, test_seqs, k):
 			res[j] += p_temp / (len(test_seqs) + 0.)
 	return res
 
+
+## TODO: write prog to output results in a file
 for i in range(1,3):
 	ppmc = PPMCModel.PPMCModel(i, alphabet)
 	for seq in training:
