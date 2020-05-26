@@ -24,10 +24,6 @@ class ThereAndBackModel(PredModel.PredModel):
 				for j in range(self.max_return):
 					if i - j - 2 >= 0 and seq[i - j - 2] == seq[i]:
 						self.return_counts[j][seq[i - 1]] += 1
-		# if len(seq) > 2:
-		# 	for i in range(2,len(seq)):
-		# 		if seq[i-2] == seq[i]:
-		# 			self.return_count[seq[i-1]] += 1
 
 	def probability(self, symbol, context = []):
 		context_node = self.tree

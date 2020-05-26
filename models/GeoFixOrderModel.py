@@ -19,7 +19,6 @@ def LongLatDistance(p1,p2) :
 
 def rbfAtPosition(pos, center, sigma, M):
 	dist = LongLatDistance(pos,center)
-	# rbf = math.exp(- (dist/(M*sigma))*(dist/(M*sigma)) / 2. )
 	rbf = math.exp(- (dist/M) * (dist/M) / sigma)
 	return rbf
 
@@ -41,7 +40,9 @@ class GeoFixOrderModel(PredModel.PredModel):
 		# 		self.max_d = max(self.max_d,d)
 		# print "Max D = "+str(self.max_d)
 		self.max_d = 1.
+		## TODO: find if to use dist / max(dist)
 
+		## TODO: improve computation time somehow ?
 		self.sum_d = dict() ## alphabet-> float
 		for s1 in self.alphabet:
 			self.sum_d[s1] = 0.
@@ -63,8 +64,6 @@ class GeoFixOrderModel(PredModel.PredModel):
 
 
 	def recurComputeDensities(self, node):
-		## TODO: need to improve computation time
-		## bu using the results for node.parent
 		cur_dens = dict()
 		for sym in self.alphabet:
 			cur_dens[sym] = 0.
@@ -96,14 +95,10 @@ class GeoFixOrderModel(PredModel.PredModel):
 		d_sym = 0.
 		sum_dens = 0.
 		n = context_node.totalCount() + 0.
-		# print "Sym : "+symbol+" context "+str(context_node.getSymbolPath())
 		for k, c in context_node.counts.iteritems():
 			if k not in self.locations.keys():
 				continue
 			p_k = self.locations[k]
-			# print "	center : "+k+" c = "+ str(c)
-			# print "	rbf_sym = "+str(rbfAtPosition(p_sym, p_k, self.sigma))
-			# print "	sum_d   = "+str(self.sum_d[k])
 			d_sym += (c/n) * rbfAtPosition(p_sym, p_k, self.sigma, self.max_d)
 			sum_dens += (c/n) * self.sum_d[k]
 

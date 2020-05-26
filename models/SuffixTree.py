@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """Suffix Tree
-
-todo: use existing package ?
 """
+#TODO: use existing package ?
 
 from collections import Counter
 
@@ -131,5 +130,4 @@ class SuffixNode(object):
 		return hash(''.join(self.getSymbolPath()))
 
 	def __eq__(self, other):
-		# print "self : "+str(self)+" other : "+str(other)
 		return self.getSymbolPath() == other.getSymbolPath()

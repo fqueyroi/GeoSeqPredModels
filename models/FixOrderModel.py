@@ -62,16 +62,15 @@ class FixOrderModel(PredModel.PredModel):
 		return ''
 
 # seq = 'abracadabra'
-# # #
-# model = FixOrderModel(3,list('abracd'))
+# alphabet = set(seq)
+#
+# model = FixOrderModel(3,alphabet)
 # model.learn(seq)
-# #
+#
 # print model.tree
 #
-# print model.randomSymbol(list('cd'))
+# context = ['a']
 #
-# print model.tree.getNode(['b']).getSymbolPath()
-#
-# print model.probability('c',['r','a'])
-#
-# print list(seq)
+# for n in alphabet:
+# 	ncontext = context[:]#
+# 	print n + " | " + ','.join(ncontext) + " : " + str(model.probability(n,ncontext))

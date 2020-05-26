@@ -67,12 +67,8 @@ class HONModel(PredModel.PredModel):
 			self.setAllRules(c,value)
 
 	def recurPruning(self, valid, current):
-		# print 'Cur : N(' + ' '.join(current.getSymbolPath()) + '), ' + \
-			# 'Val : N(' + ' '.join(valid.getSymbolPath()) + ')'
 		if current.numberChildren() == 0:
 			# valid.is_rule = True
-			# print 'New rule : '+ ''.join(valid.getSymbolPath())
-
 			### TEST ADD REWIRING RULES
 			self.setValid(valid)
 			return
@@ -134,7 +130,6 @@ class HONModel(PredModel.PredModel):
 # model = HONModel(2,alphabet)
 # model.learn(seq)
 # model.prune()
-#
 #
 # context = ['r','a']
 #
