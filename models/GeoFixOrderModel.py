@@ -6,7 +6,7 @@ import PredModel
 import math
 
 
-def LongLatDistance(p1,p2) :
+def LongLatDist(p1,p2) :
 	### Distance (in km) between locations p1 and p2
 	### using Haversine formula
 	r1 = (math.radians(p1[1]),math.radians(p1[0]))
@@ -17,12 +17,11 @@ def LongLatDistance(p1,p2) :
 	c = 2 * math.asin(math.sqrt(a))
 	return 6371 * c
 
-def distEucli(p1,p2) :
+def EucliDist(p1,p2) :
 	return math.sqrt((p1[0]-p2[0])*(p1[0]-p2[0]) + (p1[1]-p2[1])*(p1[1]-p2[1]))
 
-def rbfAtPosition(pos, center, sigma, M):
-	# dist = LongLatDistance(pos,center)
-	dist = distEucli(pos,center)
+def rbfAtPosition(pos, center, sigma, M, dist_fun = EucliDist):
+	dist = dist_fun(pos, center)
 	rbf = math.exp(- (dist/M) * (dist/M) / sigma)
 	return rbf
 
@@ -32,15 +31,31 @@ class GeoFixOrderModel(PredModel.PredModel):
 	length less than k
 	"""
 
-	def __init__(self, maxContextLength, alphabet, locations, sigma):
+	def __init__(self, maxContextLength, alphabet, locations, sigma, dist_fun = EucliDist):
+		'''
+		Parameters:
+		-----------
+		locations: dict: alphabet -> [float,float]
+			position of points in the alphabet
+
+		sigma: float > 0
+			Spread for the RDF Kernel
+			if close to 0 : results close to the FixOrderModel
+			if very large : uniform probabilities
+
+		dist_fun: function
+			Used to compute distance between locations p1 and p2
+			with p1 and p2 being [float,float]
+		'''
 		super(GeoFixOrderModel, self).__init__(maxContextLength, alphabet)
 		self.locations = locations ## alphabet label -> [lat, long]
 		self.sigma = sigma
+		self.dist_fun = dist_fun
 
 		# self.max_d = 0.
 		# for p1 in self.locations.values():
 		# 	for p2 in self.locations.values():
-		# 		d = LongLatDistance(p1,p2)
+		# 		d = self.dist_fun(p1, p2)
 		# 		self.max_d = max(self.max_d,d)
 		# print "Max D = "+str(self.max_d)
 		self.max_d = 1.
@@ -56,7 +71,7 @@ class GeoFixOrderModel(PredModel.PredModel):
 				for s2 in self.alphabet:
 					if s2 in self.locations.keys():
 						p2 = self.locations[s2]
-						rbf = rbfAtPosition(p2,p1,self.sigma, self.max_d)
+						rbf = rbfAtPosition(p2,p1,self.sigma, self.max_d, self.dist_fun)
 						self.sum_d[s1] += rbf
 
 	def learn(self, seq):
@@ -85,7 +100,7 @@ class GeoFixOrderModel(PredModel.PredModel):
 		for sym, c in node.counts.iteritems():
 			if sym in self.locations.keys():
 				pos_sym = self.locations[sym]
-				dist = LongLatDistance(pos,pos_sym)
+				dist = self.dist_fun(pos,pos_sym)
 				rbf = math.exp(- (dist/self.sigma)*(dist/self.sigma) / 2. )
 				dens = dens + c/n * rbf
 		return dens
@@ -104,7 +119,7 @@ class GeoFixOrderModel(PredModel.PredModel):
 			if k not in self.locations.keys():
 				continue
 			p_k = self.locations[k]
-			d_sym += (c/n) * rbfAtPosition(p_sym, p_k, self.sigma, self.max_d)
+			d_sym += (c/n) * rbfAtPosition(p_sym, p_k, self.sigma, self.max_d, self.dist_fun)
 			sum_dens += (c/n) * self.sum_d[k]
 
 		if sum_dens == 0:
@@ -122,11 +137,11 @@ class GeoFixOrderModel(PredModel.PredModel):
 
 # seq = ''.join(['aaacgt' for i in range(30)])
 # alphabet = ['a','c','g','t']
-# locations = {'a' : [0.,0.], 'c' : [-1.,-1.], 'g' : [5.,5.], 't' : [3.,3.]}
+# locations = {'a' : [0.,0.], 'c' : [-1.,-1.], 'g' : [3.2,3.2], 't' : [3.,3.]}
 # print seq
 # print locations
 #
-# model = GeoFixOrderModel(3, alphabet, locations, 20.)
+# model = GeoFixOrderModel(3, alphabet, locations, .1, EucliDist)
 # print model
 #
 # model.learn(seq)
@@ -138,7 +153,7 @@ class GeoFixOrderModel(PredModel.PredModel):
 #
 # sum_p = 0.
 # for n in alphabet:
-# 	context =  ['a','a']
+# 	context =  ['a','c']
 # 	prob = model.probability(n,context)
 # 	sum_p += prob
 # 	print " "+ n + " | " + ','.join(context) + " : " + str(prob)
