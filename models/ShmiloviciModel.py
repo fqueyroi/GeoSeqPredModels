@@ -67,31 +67,19 @@ class ShmiloviciModel(PredModel.PredModel):
 		return self.divergence(node) <= self.divergenceThreshold(node)
 
 	def probability(self, symbol, context):
-		context_node = self.tree
-		ncontext = context
-		## Find the largest existing prefix of ncontext in the trie
-		if len(context) > 0 :
-			len_c = min(len(context), self.maxContextLength)
-			## Take the last len_c char of the given context
-			ncontext = context[len(context) - len_c:]
-			context_node = self.tree.longestPrefix(ncontext)
-
+		context_node = self.tree.longestPrefix(context)
 		return self.probabilityForSymbol(context_node, symbol)
 
-# seq = ''.join(['aaacgt' for i in range(30)])
-# print seq
-#
-# model = ShmiloviciModel(3,4)
-#
-# model.learn(seq)
-#
-# print model.tree
-#
-# # context = ['g','t','a']
-# # print model.tree.longestPrefix(context).getSymbolPath()
-# # print model.divergence(model.tree.longestPrefix(context))
-#
-# #
-# for n in ['a','c','g','t']:
-# 	context =  ['g','t','a']
-# 	print n + " | " + ','.join(context) + " : " + str(model.probability(n,context))
+seq = ''.join(['aaacgt' for i in range(30)])
+alphabet = ['a','c','g','t']
+print seq
+
+model = ShmiloviciModel(3,alphabet)
+
+model.learn(seq)
+
+print model.tree
+
+for n in  alphabet:
+	context =  ['a','a']
+	print n + " | " + ','.join(context) + " : " + str(model.probability(n,context))

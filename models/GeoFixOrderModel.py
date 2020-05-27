@@ -17,8 +17,12 @@ def LongLatDistance(p1,p2) :
 	c = 2 * math.asin(math.sqrt(a))
 	return 6371 * c
 
+def distEucli(p1,p2) :
+	return math.sqrt((p1[0]-p2[0])*(p1[0]-p2[0]) + (p1[1]-p2[1])*(p1[1]-p2[1]))
+
 def rbfAtPosition(pos, center, sigma, M):
-	dist = LongLatDistance(pos,center)
+	# dist = LongLatDistance(pos,center)
+	dist = distEucli(pos,center)
 	rbf = math.exp(- (dist/M) * (dist/M) / sigma)
 	return rbf
 
@@ -44,6 +48,7 @@ class GeoFixOrderModel(PredModel.PredModel):
 
 		## TODO: improve computation time somehow ?
 		self.sum_d = dict() ## alphabet-> float
+
 		for s1 in self.alphabet:
 			self.sum_d[s1] = 0.
 			if s1 in self.locations.keys():
@@ -113,3 +118,29 @@ class GeoFixOrderModel(PredModel.PredModel):
 		res += str(self.sigma)
 		res += ")"
 		return res
+
+
+# seq = ''.join(['aaacgt' for i in range(30)])
+# alphabet = ['a','c','g','t']
+# locations = {'a' : [0.,0.], 'c' : [-1.,-1.], 'g' : [5.,5.], 't' : [3.,3.]}
+# print seq
+# print locations
+#
+# model = GeoFixOrderModel(3, alphabet, locations, 20.)
+# print model
+#
+# model.learn(seq)
+#
+# print model.tree
+# print
+# print model.sum_d
+# print
+#
+# sum_p = 0.
+# for n in alphabet:
+# 	context =  ['a','a']
+# 	prob = model.probability(n,context)
+# 	sum_p += prob
+# 	print " "+ n + " | " + ','.join(context) + " : " + str(prob)
+#
+# print "Sum Prob = "+str(sum_p)
