@@ -16,6 +16,8 @@ class PredModel(object):
 		-----------
 		maxContextLength: int
 			The maximum length of context
+		alphabet: list of str
+			Possible values to predict
 		"""
 		self.maxContextLength = maxContextLength
 		self.alphabet = alphabet

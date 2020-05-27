@@ -12,10 +12,24 @@ import HONSuffixTree
 class HONModel(PredModel.PredModel):
 	"""Main class for HON model"""
 
-	def __init__(self, maxContextLength, alphabet):
+	def __init__(self, maxContextLength, alphabet, use_lprefix = True, valid_prefix = False):
+		'''
+		Parameters:
+		-----------
+		use_lprefix: bool
+			If a given context was not seen during training, use the
+			longest prefix encountered instead.
+			Should always be True (?) but here for testing purposes.
+		valid_prefix: bool
+			Whether or not prefixes of a valid node should be valid
+			If True, the valid nodes correspond to the final rules
+			after network rewiring in Xu et al. (2017)
+		'''
 		self.maxContextLength = maxContextLength
 		self.alphabet = alphabet
 		self.tree = HONSuffixTree.HONSuffixNode('', None, 0)  ## root node with dummy symbol
+		self.use_lprefix = use_lprefix
+		self.valid_prefix = valid_prefix
 
 	def __str__(self):
 		return "HON-Model("+str(self.maxContextLength)+")"
@@ -68,14 +82,13 @@ class HONModel(PredModel.PredModel):
 
 	def recurPruning(self, valid, current):
 		if current.numberChildren() == 0:
-			# valid.is_rule = True
-			### TEST ADD REWIRING RULES
-			self.setValid(valid)
+			if self.valid_prefix:
+				self.setValid(valid)
+			else:
+				valid.is_rule = True
 			return
 
 		for k, c in current.children.iteritems():
-			# print "N : (" + ' '.join(c.getSymbolPath()) + ') d = ' + \
-				# str( self.divergence(c, current)) + ' thres = ' + str(self.divergenceThreshold(c))
 			div = self.divergence(c, current)
 			if div > self.divergenceThreshold(c):
 				self.recurPruning(c, c)
@@ -86,48 +99,53 @@ class HONModel(PredModel.PredModel):
 		node.is_rule = True
 		if node.depth > 1:
 			path = node.getSymbolPath()
-			# print "Set valid path : " + ''.join(path[:-1])
 			prev_node = node.getRoot().getNode(path[:-1])
 			self.setValid(prev_node)
 
 	def probability(self, symbol, context):
 		context_node = self.tree
-		ncontext = context
-		## Find the largest existing prefix of ncontext in the trie
-		if len(context) > 0 :
-			len_c = min(len(context), self.maxContextLength)
-			## Take the last len_c char of the given context
-			ncontext = context[len(context) - len_c:]
-			context_node = self.tree.longestPrefix(ncontext)
+		if self.use_lprefix:
+			context_node = self.tree.longestPrefix(context)
+		else:
+			if len(context) > 0 :
+				len_c = min(len(context), self.maxContextLength)
+				## Take the last len_c char of the given context
+				ncontext = context[len(context) - len_c:]
+				context_node = self.tree.getNode(ncontext)
 
-		# print "Probabiblity of '" + symbol + "' context : "+ str(ncontext)
-		# print "Context node : " + str(context_node.getSymbolPath())
-		return self.probabilityForSymbol(context_node, symbol)
+		if context_node is not None:
+			return self.probabilityForSymbol(context_node, symbol)
+		else:
+			return 0.
 
 	def randomSymbol(self, context = []):
 		import random
 		context_node = self.tree
-		ncontext = context
-		## Find the largest existing prefix of ncontext in the trie
-		if len(context) > 0 :
-			len_c = min(len(context), self.maxContextLength)
-			## Take the last len_c char of the given context
-			ncontext = context[len(context) - len_c:]
-			context_node = self.tree.longestPrefix(ncontext)
+		if self.use_lprefix:
+			context_node = self.tree.longestPrefix(context)
+		else:
+			if len(context) > 0 :
+				len_c = min(len(context), self.maxContextLength)
+				## Take the last len_c char of the given context
+				ncontext = context[len(context) - len_c:]
+				context_node = self.tree.getNode(ncontext)
 
-		u = random.random()
-		tot_count_n = context_node.totalCount() + 0.
-		cum_p = 0.
-		for s,c in context_node.counts.iteritems():
-			cum_p += c / tot_count_n
-			if cum_p >= u:
-				return s
+		if context_node is not None:
+			u = random.random()
+			tot_count_n = context_node.totalCount() + 0.
+			cum_p = 0.
+			for s,c in context_node.counts.iteritems():
+				cum_p += c / tot_count_n
+				if cum_p >= u:
+					return s
+		return ''
 
 
 
 # seq = 'abracadabra'
 # alphabet = ['a','b','r','c','d']
-# model = HONModel(2,alphabet)
+#
+# model = HONModel(3,alphabet,True,False)
 # model.learn(seq)
 # model.prune()
 #

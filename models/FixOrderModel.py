@@ -10,8 +10,17 @@ class FixOrderModel(PredModel.PredModel):
 	length less than k
 	"""
 
-	def __init__(self, maxContextLength, alphabet):
+	def __init__(self, maxContextLength, alphabet, use_lprefix = True):
+		'''
+		Parameters:
+		-----------
+		use_lprefix: bool
+			If a given context was not seen during training, use the
+			longest prefix encountered instead.
+			Should always be True (?) but here for testing purposes.
+		'''
 		super(FixOrderModel, self).__init__(maxContextLength, alphabet)
+		self.use_lprefix = use_lprefix
 
 	def __str__(self):
 		return "Fixed-Order Model("+str(self.maxContextLength)+")"
@@ -21,11 +30,14 @@ class FixOrderModel(PredModel.PredModel):
 
 	def probability(self, symbol, context):
 		context_node = self.tree
-		if len(context) > 0 :
-			len_c = min(len(context), self.maxContextLength)
-			## Take the last len_c char of the given context
-			ncontext = context[len(context) - len_c:]
-			context_node = self.tree.getNode(ncontext)
+		if self.use_lprefix:
+			context_node = self.tree.longestPrefix(context)
+		else:
+			if len(context) > 0 :
+				len_c = min(len(context), self.maxContextLength)
+				## Take the last len_c char of the given context
+				ncontext = context[len(context) - len_c:]
+				context_node = self.tree.getNode(ncontext)
 
 		if context_node is not None:
 			tot_count_n = context_node.totalCount() + 0.
@@ -44,12 +56,14 @@ class FixOrderModel(PredModel.PredModel):
 	def randomSymbol(self, context = []):
 		import random
 		context_node = self.tree
-		#### ESSAI POUR MODELE FIX STRICTE
-		if len(context) > 0 :
-			len_c = min(len(context), self.maxContextLength)
-			## Take the last len_c char of the given context
-			ncontext = context[len(context) - len_c:]
-			context_node = self.tree.getNode(ncontext)
+		if self.use_lprefix:
+			context_node = self.tree.longestPrefix(context)
+		else:
+			if len(context) > 0 :
+				len_c = min(len(context), self.maxContextLength)
+				## Take the last len_c char of the given context
+				ncontext = context[len(context) - len_c:]
+				context_node = self.tree.getNode(ncontext)
 
 		if context_node is not None:
 			u = random.random()
@@ -64,12 +78,16 @@ class FixOrderModel(PredModel.PredModel):
 # seq = 'abracadabra'
 # alphabet = set(seq)
 #
-# model = FixOrderModel(3,alphabet)
+# model = FixOrderModel(3,alphabet,True)
 # model.learn(seq)
 #
+# print seq
+# print
+#
+# print "Tree : "
 # print model.tree
 #
-# context = ['a']
+# context = ['d','r','a']
 #
 # for n in alphabet:
 # 	ncontext = context[:]#
