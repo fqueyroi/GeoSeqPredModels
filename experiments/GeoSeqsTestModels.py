@@ -1,5 +1,15 @@
-import random
+'''
+Main program to run tests on geographical sequences
+'''
+## TODO: write specific code for import methods for each dataset ?
+## TODO: write to output simple statistics on loaded sequences
+##       ie number, min/max/mean length, distribution of length etc.
+
 import sys, os
+
+import DataModUtils
+import SeqStats
+
 sys.path.append(''.join([os.path.dirname(__file__), '/..', '/models/']))
 
 import PPMCModel
@@ -8,28 +18,46 @@ import ThereAndBackModel
 import GeoFixOrderModel
 import HONModel
 
-import ReadWriteUtils
+sys.path.append(''.join([os.path.dirname(__file__), '/..', '/data/']))
+import LoadPortoTaxisData
+import LoadLlyodsData
 
+### PARAMETERS
+### (Should list all variables for the experiments)
 len_test = 3
+# dataset = 'PortoTaxis'
+dataset = 'Ports'
+min_k = 1 ## minimum context length
+max_k = 3 ## maximum context length
 
-## TODO: write specific code for import methods for each dataset ?
-## TODO: write to output simple statistics on loaded sequences
-##       ie number, min/max/mean length, distribution of length etc.
-
-file_path = ''.join([os.path.dirname(__file__), '/..', '/data/Lloyds_maritime/apr2009_oct2009/portseq_apr2009_oct2009.csv'])
-place_file_path = ''.join([os.path.dirname(__file__), '/..', '/data/Lloyds_maritime/table_places.csv'])
-locations = ReadWriteUtils.readLocations(place_file_path,4,6,7)
-
-sequences = ReadWriteUtils.readFile(file_path, True, ' ')
-#sequences = ReadWriteUtils.removeRepetitions(sequences)
-training, testing = ReadWriteUtils.cutEachSequences(sequences, len_test)
-test_contexts = training
+### Load Dataset
+sequences = []
+locations = []
+if dataset == 'PortoTaxis':
+	sequences = LoadPortoTaxisData.getSequences(False, 0) ## only week 0 to test
+	sequences = DataModUtils.removeRepetitions(sequences)
+	locations = LoadPortoTaxisData.getLocations()
+if dataset == 'Ports':
+	sequences = LoadLlyodsData.getSequences()
+	sequences = DataModUtils.removeRepetitions(sequences)
+	locations = LoadLlyodsData.getLocations()
 
 print "Nb Seqs : "+str(len(sequences))
 
-alphabet = ReadWriteUtils.symbols(sequences)
+### Create Training/Testing subsets
+training, test_contexts, testing = [], [], []
+if dataset == 'PortoTaxis':
+	training, testing = DataModUtils.cutEndOfSequences(sequences, len_test)
+	test_contexts = training
+if dataset == 'Ports':
+	training, testing = DataModUtils.cutEndOfSequences(sequences, len_test)
+	test_contexts = training
+
+### Get the unique list of symbols found in sequences
+alphabet = SeqStats.symbols(sequences)
 print "Nb Symbols : "+str(len(alphabet))
 
+### Filter locations (to match alphabet)
 loc_temp = dict()
 for a in alphabet:
 	if a in locations.keys():
@@ -37,6 +65,8 @@ for a in alphabet:
 locations = loc_temp
 print "Nb Locations :"+str(len(locations.keys()))
 
+
+### Set functions use to compare models
 def averageProbNextKSymbols(model, test_contexts, test_seqs, k):
 	## TODO: create file with evaluation functions
 	res = [0 for i in range(k)]
@@ -52,8 +82,8 @@ def averageProbNextKSymbols(model, test_contexts, test_seqs, k):
 	return res
 
 
-## TODO: write prog to output results in a file
-for i in range(1,3):
+## TODO: output results in a file
+for i in range(min_k, max_k + 1):
 	ppmc = PPMCModel.PPMCModel(i, alphabet)
 	for seq in training:
 		ppmc.learn(seq)
@@ -71,33 +101,33 @@ for i in range(1,3):
 	for seq in training:
 		fix.learn(seq)
 
-	geo = GeoFixOrderModel.GeoFixOrderModel(i, alphabet, locations, 0.01)
+	geo = GeoFixOrderModel.GeoFixOrderModel(i, alphabet, locations, 0.05, "haversine")
 	for seq in training:
 		geo.learn(seq)
 
 	probs_ppmc = averageProbNextKSymbols(ppmc, test_contexts, testing, 3)
 	print str(ppmc)
-	print "	probs : "+ ReadWriteUtils.str_probs(probs_ppmc)
+	print "	probs : "+ SeqStats.str_probs(probs_ppmc)
 	print "	size  : " + str(ppmc.size())
 
 	probs_tab = averageProbNextKSymbols(tab, test_contexts, testing, len_test)
 	print str(tab)
-	print "	probs : "+ ReadWriteUtils.str_probs(probs_tab)
+	print "	probs : "+ SeqStats.str_probs(probs_tab)
 	print "	size  : " + str(tab.size())
 
 	probs_fix = averageProbNextKSymbols(fix, test_contexts, testing, len_test)
 	print str(fix)
-	print "	probs : "+ ReadWriteUtils.str_probs(probs_fix)
+	print "	probs : "+ SeqStats.str_probs(probs_fix)
 	print "	size  : " + str(fix.size())
 
 	probs_hon = averageProbNextKSymbols(hon, test_contexts, testing, len_test)
 	print str(hon)+" PRUNED"
-	print "	probs : "+ ReadWriteUtils.str_probs(probs_hon)
+	print "	probs : "+ SeqStats.str_probs(probs_hon)
 	print "	size  : " + str(hon.size())
 
 	probs_geo = averageProbNextKSymbols(geo, test_contexts, testing, len_test)
 	print str(geo)
-	print "	probs : "+ ReadWriteUtils.str_probs(probs_geo)
+	print "	probs : "+ SeqStats.str_probs(probs_geo)
 	print "	size  : " + str(geo.size())
 
 	print

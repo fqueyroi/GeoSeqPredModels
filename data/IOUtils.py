@@ -31,14 +31,16 @@ def readFile(filename,is_line_id = True, sep = ' ') :
 	return sequences
 
 ######################################################################################
-def readLocations(filename, col_id, col_x, col_y, sep = ','):
+def readLocations(filename, col_id, col_x, col_y, sep = ',', header = True):
+	print(str(header))
 	locations = dict()
 	file = open(filename,'r')
 	count_line = 0
 	for line in file :
-		if count_line == 0:
-			count_line += 1
-			continue
+		if header :
+			if count_line == 0:
+				count_line += 1
+				continue		
 		if len(line) == 0:
 			count_line += 1
 			continue

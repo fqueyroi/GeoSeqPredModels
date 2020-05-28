@@ -18,8 +18,8 @@ def getSequences(all_weeks = True, week = 0):
 ################################################################################
 def getLocations():
 	locations_file_path   = os.path.dirname(__file__)+'/Porto_Taxis/PoliceCoordsLocations.csv'
-	locations = IOUtils.readLocations(locations_file_path,0,1,2)
+	locations = IOUtils.readLocations(locations_file_path,0,1,2,sep=',',header=False)
 	return locations
 ################################################################################
 # print len(getSequences(True, 0))
-# print getLocations()
+# print len(getLocations())
