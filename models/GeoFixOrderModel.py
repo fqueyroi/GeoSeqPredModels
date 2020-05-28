@@ -31,7 +31,7 @@ class GeoFixOrderModel(PredModel.PredModel):
 	length less than k
 	"""
 
-	def __init__(self, maxContextLength, alphabet, locations, sigma, dist_fun = EucliDist):
+	def __init__(self, maxContextLength, alphabet, locations, sigma, dist = 'euclidian'):
 		'''
 		Parameters:
 		-----------
@@ -47,11 +47,13 @@ class GeoFixOrderModel(PredModel.PredModel):
 			Used to compute distance between locations p1 and p2
 			with p1 and p2 being [float,float]
 		'''
+		assert dist in ('euclidian', 'haversine'), "Invalid dist name '{}'".format(dist)
 		super(GeoFixOrderModel, self).__init__(maxContextLength, alphabet)
 		self.locations = locations ## alphabet label -> [lat, long]
 		self.sigma = sigma
-		self.dist_fun = dist_fun
-
+		self.dist_fun = EucliDist
+		if dist == 'haversine':
+			self.dist_fun = LongLatDist
 		# self.max_d = 0.
 		# for p1 in self.locations.values():
 		# 	for p2 in self.locations.values():
@@ -59,11 +61,11 @@ class GeoFixOrderModel(PredModel.PredModel):
 		# 		self.max_d = max(self.max_d,d)
 		# print "Max D = "+str(self.max_d)
 		self.max_d = 1.
-		## TODO: find if to use dist / max(dist)
+		## TODO: find if we should use dist / max(dist)
 
 		## TODO: improve computation time somehow ?
+		## Should at least be done once before experiments
 		self.sum_d = dict() ## alphabet-> float
-
 		for s1 in self.alphabet:
 			self.sum_d[s1] = 0.
 			if s1 in self.locations.keys():
@@ -141,7 +143,7 @@ class GeoFixOrderModel(PredModel.PredModel):
 # print seq
 # print locations
 #
-# model = GeoFixOrderModel(3, alphabet, locations, .1, EucliDist)
+# model = GeoFixOrderModel(3, alphabet, locations, .1, "euclidian")
 # print model
 #
 # model.learn(seq)
