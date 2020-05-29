@@ -25,10 +25,14 @@ import LoadLlyodsData
 ### PARAMETERS
 ### (Should list all variables for the experiments)
 len_test = 3
-# dataset = 'PortoTaxis'
-dataset = 'Ports'
+dataset = 'PortoTaxis'
+# dataset = 'Ports'
 min_k = 1 ## minimum context length
 max_k = 3 ## maximum context length
+
+## for Geo models
+sigma = 0.0001
+dist_fun = GeoFixOrderModel.Dists[GeoFixOrderModel.DistCalc.HAVERSINE]
 
 ### Load Dataset
 sequences = []
@@ -65,7 +69,6 @@ for a in alphabet:
 locations = loc_temp
 print "Nb Locations :"+str(len(locations.keys()))
 
-
 ### Set functions use to compare models
 def averageProbNextKSymbols(model, test_contexts, test_seqs, k):
 	## TODO: create file with evaluation functions
@@ -81,6 +84,9 @@ def averageProbNextKSymbols(model, test_contexts, test_seqs, k):
 			res[j] += p_temp / (len(test_seqs) + 0.)
 	return res
 
+## Init variables of GeoFixOrderModel
+max_d = GeoFixOrderModel.getMaxDistance(locations, dist_fun)
+sum_d = GeoFixOrderModel.sumDensities(alphabet, locations, sigma, max_d, dist_fun)
 
 ## TODO: output results in a file
 for i in range(min_k, max_k + 1):
@@ -101,7 +107,7 @@ for i in range(min_k, max_k + 1):
 	for seq in training:
 		fix.learn(seq)
 
-	geo = GeoFixOrderModel.GeoFixOrderModel(i, alphabet, locations, 0.05, "haversine")
+	geo = GeoFixOrderModel.GeoFixOrderModel(i, alphabet, locations, sigma, dist_fun, max_d, sum_d)
 	for seq in training:
 		geo.learn(seq)
 
