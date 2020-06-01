@@ -4,11 +4,13 @@ import os,sys
 poi_locations = []
 poi_file_path = sys.path[0]+'/porto_portugal_osm_point.geojson'
 poi_file = open(poi_file_path)
+excluded_types = [None, 'atm','bench','charging_station','clock','compressed_air','drinking_water','elevator','public_bookcase','post_box','recycling','shower','traffic_signals','Tintas','vending_machine','waste_disposal','waste_basket']
+
 for poi_line in poi_file:
 	j = json.loads(poi_line[:-2])
-	if j["properties"]['amenity'] is not None:
+	type = j["properties"]['amenity']
+	if j["properties"]['amenity'] not in excluded_types:
 		id_osm = str(int(j['properties']['osm_id']))
-		type = j["properties"]['amenity']
 		lat = j['geometry']['coordinates'][0]
 		lon = j['geometry']['coordinates'][1]
 		poi_locations.append([id_osm,str(type),str(lat),str(lon)])
