@@ -31,14 +31,15 @@ min_k = 1 ## minimum context length
 max_k = 3 ## maximum context length
 
 ## for Geo models
-sigma = 0.0001
+sigma =  0.00000005
 dist_fun = GeoFixOrderModel.Dists[GeoFixOrderModel.DistCalc.HAVERSINE]
 
 ### Load Dataset
 sequences = []
 locations = []
 if dataset == 'PortoTaxis':
-	sequences = LoadPortoTaxisData.getSequences(False, 0) ## only week 0 to test
+	dist_fun = GeoFixOrderModel.Dists[GeoFixOrderModel.DistCalc.EUCLIDIAN]
+	sequences = LoadPortoTaxisData.getSequences(False, 0)
 	sequences = DataModUtils.removeRepetitions(sequences)
 	locations = LoadPortoTaxisData.getLocations()
 if dataset == 'Ports':

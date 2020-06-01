@@ -32,7 +32,6 @@ def readFile(filename,is_line_id = True, sep = ' ') :
 
 ######################################################################################
 def readLocations(filename, col_id, col_x, col_y, sep = ',', header = True):
-	print(str(header))
 	locations = dict()
 	file = open(filename,'r')
 	count_line = 0
@@ -40,7 +39,7 @@ def readLocations(filename, col_id, col_x, col_y, sep = ',', header = True):
 		if header :
 			if count_line == 0:
 				count_line += 1
-				continue		
+				continue
 		if len(line) == 0:
 			count_line += 1
 			continue
