@@ -1,5 +1,12 @@
+'''
+OSM Files can be found at
+https://github.com/xyjprc/hon/tree/master/data_porto_taxi/porto_portugal.osm2pgsql-geojson
+'''
+
 import json
 import os,sys
+
+## TODO directly use streets as locations
 
 poi_locations = []
 poi_file_path = sys.path[0]+'/porto_portugal_osm_point.geojson'

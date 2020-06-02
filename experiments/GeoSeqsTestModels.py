@@ -1,9 +1,11 @@
 '''
 Main program to run tests on geographical sequences
 '''
-## TODO: write specific code for import methods for each dataset ?
-## TODO: write to output simple statistics on loaded sequences
+## TODO write specific code for import methods for each dataset ?
+## TODO write to output simple statistics on loaded sequences
 ##       ie number, min/max/mean length, distribution of length etc.
+## TODO For each "geo-model" write a random generator where the model
+##		the model should be the best 
 
 import sys, os
 
@@ -31,7 +33,8 @@ min_k = 1 ## minimum context length
 max_k = 3 ## maximum context length
 
 ## for Geo models
-sigma =  0.00000005
+## TODO Search procedure to automatically find the best sigma values
+sigma =  0.000000005
 dist_fun = GeoFixOrderModel.Dists[GeoFixOrderModel.DistCalc.HAVERSINE]
 
 ### Load Dataset
@@ -73,6 +76,7 @@ print "Nb Locations :"+str(len(locations.keys()))
 ### Set functions use to compare models
 def averageProbNextKSymbols(model, test_contexts, test_seqs, k):
 	## TODO: create file with evaluation functions
+	## TODO: compute distance between prediction and real location
 	res = [0 for i in range(k)]
 	order = model.maxContextLength
 	for i in range(len(test_seqs)):

@@ -1,6 +1,9 @@
 '''
 using parts of
 https://github.com/xyjprc/hon/blob/master/data_porto_taxi/CleanPortugalData.py
+
+File train.csv found at
+https://www.kaggle.com/crailtap/taxi-trajectory
 '''
 
 from collections import defaultdict
@@ -13,7 +16,7 @@ import os,sys
 train_file_path = sys.path[0]+'/train.csv'
 poi_file_path = sys.path[0]+'/poi_locations.csv'
 ## taking first day
-max_date = date(2013,7,1) ## min date is date(2013,6,30)
+max_date = date(2013,7,2) ## min date is date(2013,6,30)
 
 output_file_path = sys.path[0]+'/trajectories_amenity.csv'
 
