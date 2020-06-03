@@ -1,12 +1,6 @@
 '''
-Main program to run tests on geographical sequences
+Main program to run tests on models using generated data
 '''
-## TODO write specific code for import methods for each dataset ?
-## TODO write to output simple statistics on loaded sequences
-##       ie number, min/max/mean length, distribution of length etc.
-## TODO For each "geo-model" write a random generator where the model
-##		the model should be the best
-
 import sys, os
 
 import DataModUtils
@@ -20,63 +14,37 @@ import ThereAndBackModel
 import GeoFixOrderModel
 import HONModel
 
-sys.path.append(''.join([os.path.dirname(__file__), '/..', '/data/']))
-import LoadPortoTaxisData
-import LoadLlyodsData
+sys.path.append(''.join([os.path.dirname(__file__), '/..', '/data/generators/']))
+import LocationBasedGenerator
+
 
 ### PARAMETERS
 ### (Should list all variables for the experiments)
-len_test = 3
-dataset = 'PortoTaxis'
-# dataset = 'Ports'
 min_k = 1 ## minimum context length
-max_k = 3 ## maximum context length
+max_k = 1 ## maximum context length
+len_test = 2
+sigma =  0.01
+dist_fun = GeoFixOrderModel.Dists[GeoFixOrderModel.DistCalc.EUCLIDIAN]
 
-## for Geo models
-## TODO Search procedure to automatically find the best sigma values
-sigma =  0.0000001
-dist_fun = GeoFixOrderModel.Dists[GeoFixOrderModel.DistCalc.HAVERSINE]
-
-### Load Dataset
-sequences = []
-locations = []
-if dataset == 'PortoTaxis':
-	dist_fun = GeoFixOrderModel.Dists[GeoFixOrderModel.DistCalc.EUCLIDIAN]
-	sequences = LoadPortoTaxisData.getSequences(False, 0)
-	sequences = DataModUtils.removeRepetitions(sequences)
-	locations = LoadPortoTaxisData.getLocations()
-if dataset == 'Ports':
-	sequences = LoadLlyodsData.getSequences()
-	sequences = DataModUtils.removeRepetitions(sequences)
-	locations = LoadLlyodsData.getLocations()
+## Generate datasets
+gen = LocationBasedGenerator.LocationBasedGenerator(alphabet_size = 100, stop_prob = 0.1,sigma = sigma)
+locations = gen.locations
+sequences =  gen.generate(400)
+sequences = DataModUtils.removeRepetitions(sequences)
 
 print "Nb Seqs : "+str(len(sequences))
-
-### Create Training/Testing subsets
-training, test_contexts, testing = [], [], []
-if dataset == 'PortoTaxis':
-	training, testing = DataModUtils.cutEndOfSequences(sequences, len_test)
-	test_contexts = training
-if dataset == 'Ports':
-	training, testing = DataModUtils.cutEndOfSequences(sequences, len_test)
-	test_contexts = training
 
 ### Get the unique list of symbols found in sequences
 alphabet = SeqStats.symbols(sequences)
 print "Nb Symbols : "+str(len(alphabet))
 
-### Filter locations (to match alphabet)
-loc_temp = dict()
-for a in alphabet:
-	if a in locations.keys():
-		loc_temp[a] = locations[a]
-locations = loc_temp
-print "Nb Locations :"+str(len(locations.keys()))
+### Create Training/Testing subsets
+training, test_contexts, testing = [], [], []
+training, testing = DataModUtils.cutEndOfSequences(sequences, len_test)
+test_contexts = training
 
 ### Set functions use to compare models
 def averageProbNextKSymbols(model, test_contexts, test_seqs, k):
-	## TODO: create file with evaluation functions
-	## TODO: compute distance between prediction and real location
 	res = [0 for i in range(k)]
 	order = model.maxContextLength
 	for i in range(len(test_seqs)):

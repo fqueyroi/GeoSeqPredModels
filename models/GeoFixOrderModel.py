@@ -27,10 +27,10 @@ class DistCalc(Enum):
 	HAVERSINE = 2
 Dists = {DistCalc.EUCLIDIAN: EucliDist, DistCalc.HAVERSINE: LongLatDist}
 
-def rbfAtPosition(pos, center, sigma, M, dist_fun = DistCalc.EUCLIDIAN):
+def rbf(pos, center, sigma, M, dist_fun = DistCalc.EUCLIDIAN):
 	dist = dist_fun(pos, center)
-	rbf = math.exp(- (dist/M) * (dist/M) / sigma)
-	return rbf
+	res = math.exp(- (dist/M)**2 / sigma)
+	return res
 
 def getMaxDistance(locations, dist_fun = DistCalc.EUCLIDIAN):
 	max_d = 0.
@@ -49,8 +49,7 @@ def sumDensities(alphabet, locations, sigma, max_d, dist_fun = DistCalc.EUCLIDIA
 			for s2 in alphabet:
 				if s2 in locations.keys():
 					p2 = locations[s2]
-					rbf = rbfAtPosition(p2, p1, sigma, max_d, dist_fun)
-					sum_d[s1] += rbf
+					sum_d[s1] += rbf(p2, p1, sigma, max_d, dist_fun)
 	return sum_d
 
 
@@ -60,7 +59,8 @@ class GeoFixOrderModel(PredModel.PredModel):
 	length less than k
 	"""
 
-	def __init__(self, maxContextLength, alphabet, locations, sigma, dist_fun = DistCalc.EUCLIDIAN, max_d = 0., sum_dens = None):
+	def __init__(self, k, A, locations, sigma, dist_fun = DistCalc.EUCLIDIAN,
+					max_d = 0., sum_dens = None, zero_p = False):
 		'''
 		Parameters:
 		-----------
@@ -76,27 +76,30 @@ class GeoFixOrderModel(PredModel.PredModel):
 			Used to compute distance between locations p1 and p2
 			with p1 and p2 being [float,float]
 
+		zero_p: bool
+			If True the probability of a subsequence not observed during
+			training is set to zero
+
 		'''
 
-		super(GeoFixOrderModel, self).__init__(maxContextLength, alphabet)
+		super(GeoFixOrderModel, self).__init__(k, A)
 		self.locations = locations ## alphabet label -> [lat, long]
 		self.sigma = sigma
 		self.dist_fun = dist_fun
 
+		self.zero_p = zero_p
 		self.max_d = max_d
 		if max_d == 0.:
 			self.max_d = getMaxDistance(self.locations, self.dist_fun)
-		# print "Max D = "+str(self.max_d)
-		# self.max_d = 1.
-		## TODO: find if we should use dist / max(dist)
 
 		## TODO: improve computation time somehow ?
 		## Should at least be done once before experiments
 		self.sum_d = dict()
-		if sum_dens is None:
-			self.sum_d = sumDensities(self.alphabet, self.locations, self.sigma, self.max_d, self.dist_fun)
-		else:
-			self.sum_d = sum_dens
+		if not self.zero_p:
+			if sum_dens is None:
+				self.sum_d = sumDensities(self.alphabet, self.locations, self.sigma, self.max_d, self.dist_fun)
+			else:
+				self.sum_d = sum_dens
 
 
 	def learn(self, seq):
@@ -108,7 +111,7 @@ class GeoFixOrderModel(PredModel.PredModel):
 		for sym, c in node.counts.iteritems():
 			if sym in self.locations.keys():
 				pos_sym = self.locations[sym]
-				rbf = rbfAtPosition(pos, pos_sym, self.sigma, self.max_d, self.dist_fun)
+				rbf = rbf(pos, pos_sym, self.sigma, self.max_d, self.dist_fun)
 				dens = dens + c/n * rbf
 		return dens
 
@@ -118,16 +121,29 @@ class GeoFixOrderModel(PredModel.PredModel):
 		p_sym = self.locations[symbol]
 
 		context_node = self.tree.longestPrefix(context)
-
+		n = context_node.totalCount() + 0.
 		d_sym = 0.
 		sum_dens = 0.
-		n = context_node.totalCount() + 0.
-		for k, c in context_node.counts.iteritems():
-			if k not in self.locations.keys():
-				continue
-			p_k = self.locations[k]
-			d_sym += (c/n) * rbfAtPosition(p_sym, p_k, self.sigma, self.max_d, self.dist_fun)
-			sum_dens += (c/n) * self.sum_d[k]
+		if self.zero_p:
+			if context_node[symbol]==0:
+				return 0.
+			for k, c in context_node.counts.iteritems():
+				p_k = self.locations[k]
+				k_sum_dens = 0.
+				for k2, c2 in context_node.counts.iteritems():
+					p_k2 = self.locations[k2]
+					k_sum_dens += rbf(p_k, p_k2, self.sigma, self.max_d, self.dist_fun)
+				sum_dens += (c/n) * k_sum_dens
+				d_sym += (c/n) * rbf(p_sym, p_k, self.sigma, self.max_d, self.dist_fun)
+		else:
+			for k, c in context_node.counts.iteritems():
+				## TODO make sure every elem as a location entry to avoid this test
+				## Consider it as missing values if not
+				if k not in self.locations.keys():
+					continue
+				p_k = self.locations[k]
+				d_sym += (c/n) * rbf(p_sym, p_k, self.sigma, self.max_d, self.dist_fun)
+				sum_dens += (c/n) * self.sum_d[k]
 
 		if sum_dens == 0:
 			return 0.
@@ -143,12 +159,13 @@ class GeoFixOrderModel(PredModel.PredModel):
 
 
 # seq = ''.join(['aaacgt' for i in range(30)])
+# seq += 'aactg'
 # alphabet = ['a','c','g','t']
-# locations = {'a' : [0.,0.], 'c' : [-1.,-1.], 'g' : [3.2,3.2], 't' : [3.,3.]}
+# locations = {'a' : [0.,0.], 'c' : [-1.,-1.], 'g' : [1.1,1.1], 't' : [1.,1.]}
 # print seq
 # print locations
 #
-# model = GeoFixOrderModel(3, alphabet, locations, .1, "euclidian")
+# model = GeoFixOrderModel(2, alphabet, locations, .5, EucliDist, 0, None, True)
 # print model
 #
 # model.learn(seq)
