@@ -14,6 +14,8 @@ import ThereAndBackModel
 import GeoFixOrderModel
 import HONModel
 
+## TODO: For each "geo-model" write a random generator where the model
+##		the model should be the best
 sys.path.append(''.join([os.path.dirname(__file__), '/..', '/data/generators/']))
 import LocationBasedGenerator
 
@@ -61,7 +63,6 @@ def averageProbNextKSymbols(model, test_contexts, test_seqs, k):
 max_d = GeoFixOrderModel.getMaxDistance(locations, dist_fun)
 sum_d = GeoFixOrderModel.sumDensities(alphabet, locations, sigma, max_d, dist_fun)
 
-## TODO: output results in a file
 for i in range(min_k, max_k + 1):
 	ppmc = PPMCModel.PPMCModel(i, alphabet)
 	for seq in training:

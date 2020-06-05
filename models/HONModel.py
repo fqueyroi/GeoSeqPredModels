@@ -104,6 +104,7 @@ class HONModel(PredModel.PredModel):
 
 	def probability(self, symbol, context):
 		context_node = self.tree
+		## TODO: test the effect of use_lprefix
 		if self.use_lprefix:
 			context_node = self.tree.longestPrefix(context)
 		else:

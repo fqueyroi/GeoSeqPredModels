@@ -2,6 +2,8 @@
 """
 Base inferface for Sequence generation
 """
+## TODO: create generators that use categorical dataset
+##		maybe using a Hidden Markov model where the state are the categories 
 
 class SequenceGenerator(object):
 

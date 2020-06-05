@@ -56,6 +56,7 @@ class FixOrderModel(PredModel.PredModel):
 	def randomSymbol(self, context = []):
 		import random
 		context_node = self.tree
+		## TODO: test the effect of use_lprefix
 		if self.use_lprefix:
 			context_node = self.tree.longestPrefix(context)
 		else:
@@ -78,7 +79,7 @@ class FixOrderModel(PredModel.PredModel):
 # seq = 'abracadabra'
 # alphabet = set(seq)
 #
-# model = FixOrderModel(3,alphabet,True)
+# model = FixOrderModel(3,alphabet,False)
 # model.learn(seq)
 #
 # print seq
@@ -87,7 +88,7 @@ class FixOrderModel(PredModel.PredModel):
 # print "Tree : "
 # print model.tree
 #
-# context = ['d','r','a']
+# context = ['a']
 #
 # for n in alphabet:
 # 	ncontext = context[:]#

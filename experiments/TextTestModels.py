@@ -1,4 +1,5 @@
 #### NOT WORKING ATM
+## TODO Fix the tests for Text datasets
 
 import random
 import sys, os
@@ -15,9 +16,6 @@ file_path = ''.join([os.path.dirname(__file__), '/..', '/data/LargeCalgaryCorpus
 # sequences = ReadWriteUtils.readTextByLines(file_path)
 sequence = ReadWriteUtils.readText(file_path)
 
-## TODO: write specific import methods for each dataset ?
-
-
 training, testing = ReadWriteUtils.cutText(sequence, 0.5)
 alphabet = ReadWriteUtils.symbols([sequence])
 
@@ -25,7 +23,6 @@ print "Nb Symbols : "+str(len(alphabet))
 print len(training) + len(testing)
 
 def averageProbNextKSymbols(model, test_seq, k, nb_test):
-	## TODO: create file with evaluation functions
 	res = [0 for i in range(k)]
 	for i in range(nb_test):
 		start_i = random.randint(model.maxContextLength, len(test_seq) - k)

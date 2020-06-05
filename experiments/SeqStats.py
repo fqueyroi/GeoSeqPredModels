@@ -1,3 +1,6 @@
+## TODO: write method to output simple statistics on loaded sequences
+##       ie number, min/max/mean length, distribution of length etc.
+
 ################################################################################
 def symbols(sequences):
 	symbols = set()

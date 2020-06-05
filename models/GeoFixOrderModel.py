@@ -92,8 +92,6 @@ class GeoFixOrderModel(PredModel.PredModel):
 		if max_d == 0.:
 			self.max_d = getMaxDistance(self.locations, self.dist_fun)
 
-		## TODO: improve computation time somehow ?
-		## Should at least be done once before experiments
 		self.sum_d = dict()
 		if not self.zero_p:
 			if sum_dens is None:
@@ -127,6 +125,7 @@ class GeoFixOrderModel(PredModel.PredModel):
 		if self.zero_p:
 			if context_node[symbol]==0:
 				return 0.
+			## TODO: improve computation time somehow ? Maybe storing the vals of k_sum_dens in the nodes ?
 			for k, c in context_node.counts.iteritems():
 				p_k = self.locations[k]
 				k_sum_dens = 0.

@@ -1,11 +1,7 @@
 '''
 Main program to run tests on geographical sequences
 '''
-## TODO write specific code for import methods for each dataset ?
-## TODO write to output simple statistics on loaded sequences
-##       ie number, min/max/mean length, distribution of length etc.
-## TODO For each "geo-model" write a random generator where the model
-##		the model should be the best
+## TODO: write specific code for import methods for each dataset ?
 
 import sys, os
 
@@ -33,7 +29,7 @@ min_k = 1 ## minimum context length
 max_k = 3 ## maximum context length
 
 ## for Geo models
-## TODO Search procedure to automatically find the best sigma values
+## TODO: Search procedure to automatically find the best sigma value ?
 sigma =  0.0000001
 dist_fun = GeoFixOrderModel.Dists[GeoFixOrderModel.DistCalc.HAVERSINE]
 
@@ -60,6 +56,10 @@ if dataset == 'PortoTaxis':
 if dataset == 'Ports':
 	training, testing = DataModUtils.cutEndOfSequences(sequences, len_test)
 	test_contexts = training
+## TODO: perform test not only on the last symbol in training sequence
+## 		instead split all sequences into to set at random (training and testing)
+##		and compute the prediction score by an average on the proba of
+##		symbols in each seq of sequences after the first k symbols (context)
 
 ### Get the unique list of symbols found in sequences
 alphabet = SeqStats.symbols(sequences)
@@ -75,8 +75,8 @@ print "Nb Locations :"+str(len(locations.keys()))
 
 ### Set functions use to compare models
 def averageProbNextKSymbols(model, test_contexts, test_seqs, k):
-	## TODO: create file with evaluation functions
-	## TODO: compute distance between prediction and real location
+	## TODO: create file with evaluation functions including this one
+	## TODO: Test one using the distance between prediction and real location
 	res = [0 for i in range(k)]
 	order = model.maxContextLength
 	for i in range(len(test_seqs)):
