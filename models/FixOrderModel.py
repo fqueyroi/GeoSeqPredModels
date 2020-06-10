@@ -42,15 +42,8 @@ class FixOrderModel(PredModel.PredModel):
 		if context_node is not None:
 			tot_count_n = context_node.totalCount() + 0.
 			return context_node[symbol] / tot_count_n
-			# ### ESSAI POUR EVITER ZERO Proba
-			# nb_next_sym = context_node.numberNextSymbols()
-			# tot_count_n = context_node.totalCount() + 0.
-			# if context_node[symbol] == 0 :
-			# 	return 1. / tot_sym
-			# else :
-			# 	return ((tot_sym - nb_next_sym) / tot_sym) * (context_node[symbol] / tot_count_n)
-			###
-		# return 1. / tot_sym
+		## TODO: For consistency (sum prob = 1) maybe we should
+		## add uniform probability on alphabet if the context was never seen ?
 		return 0.
 
 	def randomSymbol(self, context = []):
@@ -88,7 +81,7 @@ class FixOrderModel(PredModel.PredModel):
 # print "Tree : "
 # print model.tree
 #
-# context = ['a']
+# context = ['a','r']
 #
 # for n in alphabet:
 # 	ncontext = context[:]#

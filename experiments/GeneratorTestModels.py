@@ -91,7 +91,7 @@ for i in range(min_k, max_k + 1):
 	for seq in training:
 		geo_zp.learn(seq)
 
-	probs_ppmc = averageProbNextKSymbols(ppmc, test_contexts, testing, 3)
+	probs_ppmc = averageProbNextKSymbols(ppmc, test_contexts, testing, len_test)
 	print str(ppmc)
 	print "	probs : "+ SeqStats.str_probs(probs_ppmc)
 	print "	size  : " + str(ppmc.size())

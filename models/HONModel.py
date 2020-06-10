@@ -117,6 +117,8 @@ class HONModel(PredModel.PredModel):
 		if context_node is not None:
 			return self.probabilityForSymbol(context_node, symbol)
 		else:
+			## TODO: For consistency (sum prob = 1) maybe we should
+			## add uniform probability on alphabet if the context was never seen ?
 			return 0.
 
 	def randomSymbol(self, context = []):

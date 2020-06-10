@@ -8,17 +8,6 @@ import sys
 import random
 
 ################################################################################
-def splitSequenceRandom(seq, ratio_training):
-	training = []
-	testing  = []
-	end_training = int(round(len(seq)*ratio_training))
-	for i in range(end_training):
-		training.append(seq[i])
-	for i in range(end_training,len(seq)):
-		testing.append(seq[i])
-	return training, testing
-
-################################################################################
 def cutEndOfSequences(sequences,len_test) :
 	build_seqs = []
 	test_seqs  = []

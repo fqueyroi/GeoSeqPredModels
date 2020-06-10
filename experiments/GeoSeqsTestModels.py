@@ -29,8 +29,8 @@ min_k = 1 ## minimum context length
 max_k = 3 ## maximum context length
 
 ## for Geo models
-## TODO: Search procedure to automatically find the best sigma value ?
-sigma =  0.0000001
+## TODO: Search procedure to automatically find the best gamma value ?
+gamma =  0.0000001
 dist_fun = GeoFixOrderModel.Dists[GeoFixOrderModel.DistCalc.HAVERSINE]
 
 ### Load Dataset
@@ -91,7 +91,7 @@ def averageProbNextKSymbols(model, test_contexts, test_seqs, k):
 
 ## Init variables of GeoFixOrderModel
 max_d = GeoFixOrderModel.getMaxDistance(locations, dist_fun)
-sum_d = GeoFixOrderModel.sumDensities(alphabet, locations, sigma, max_d, dist_fun)
+sum_d = GeoFixOrderModel.sumDensities(alphabet, locations, gamma, max_d, dist_fun)
 
 ## TODO: output results in a file
 for i in range(min_k, max_k + 1):
@@ -112,17 +112,17 @@ for i in range(min_k, max_k + 1):
 	for seq in training:
 		fix.learn(seq)
 
-	geo = GeoFixOrderModel.GeoFixOrderModel(i, alphabet, locations, sigma,
+	geo = GeoFixOrderModel.GeoFixOrderModel(i, alphabet, locations, gamma,
 			dist_fun, max_d, sum_d,False)
 	for seq in training:
 		geo.learn(seq)
 
-	geo_zp = GeoFixOrderModel.GeoFixOrderModel(i, alphabet, locations, sigma,
+	geo_zp = GeoFixOrderModel.GeoFixOrderModel(i, alphabet, locations, gamma,
 			dist_fun, max_d, sum_d,True)
 	for seq in training:
 		geo_zp.learn(seq)
 
-	probs_ppmc = averageProbNextKSymbols(ppmc, test_contexts, testing, 3)
+	probs_ppmc = averageProbNextKSymbols(ppmc, test_contexts, testing, len_test)
 	print str(ppmc)
 	print "	probs : "+ SeqStats.str_probs(probs_ppmc)
 	print "	size  : " + str(ppmc.size())
