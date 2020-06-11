@@ -10,7 +10,6 @@ class CategoriesModel(FixOrderModel.FixOrderModel):
         super(CategoriesModel, self).__init__(maxContextLength, alphabet, use_lprefix)
         self.categories = categories
 
-
     def __str__(self):
         return "Categories Model(" + str(self.maxContextLength) + ")"
 
@@ -33,52 +32,21 @@ class CategoriesModel(FixOrderModel.FixOrderModel):
             self.tree.increment(seq[0], [])
             for i in range(2, len(seq) + 1):
                 cseq = seq[:i]
-                self.tree.increment(cseq[-1], map(self.getCategory, cseq[:-1]))
+                self.tree.increment(cseq[-1], [self.categories[s] for s in cseq[:-1]])
         else:
             maxlength = self.maxContextLength
             self.tree.increment(seq[0], [])
             for i in range(2, maxlength + 1):
                 cseq = seq[:i]
-                self.tree.increment(cseq[-1], map(self.getCategory, cseq[:-1]))
+                self.tree.increment(cseq[-1], [self.categories[s] for s in cseq[:-1]])
             for i in range(len(seq) - maxlength):
                 length = min(maxlength + 1, len(seq) - i)
                 cseq = seq[i:i + length]
-                self.tree.increment(cseq[-1], map(self.getCategory, cseq[:-1]))
-
-    def getCategory(self,symbol):
-        for k, c in self.categories.iteritems():
-            if k == symbol:
-                return c
-
-    def seqToCategories(self, seq):
-        catSeq = []
-        for i in seq:
-                catSeq.append(self.getCategory(i))
-        return catSeq
+                self.tree.increment(cseq[-1], [self.categories[s] for s in cseq[:-1]])
 
     def probability(self, symbol, context):
-        return super(CategoriesModel, self).probability(symbol,  map(self.getCategory, context))
+        return super(CategoriesModel, self).probability(symbol, [self.categories[s] for s in context])
 
-
-
-# seq = 'aatccaagaatcg'
-# alphabet = ['a', 'c', 'g', 't']
-# categories = {'a': 'C1', 'c': 'C1', 'g': 'C2', 't': 'C2'}
-#
-#
-# model = CategoriesModel(3, alphabet, categories)
-# model.learn(seq)
-#
-# print "Tree : "
-# print model.tree
-#
-# # context = ['g', 'a']
-# context = ['a', 'a']
-# # context = ['a']
-#
-# for n in alphabet:
-#     ncontext = context[:]
-#     print n + " | " + ','.join(ncontext) + " : " + str(model.probability(n, ncontext))
 
 # seq = 'abracadabra'
 # alphabet = set(seq)
