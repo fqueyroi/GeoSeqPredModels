@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 """ Base inferface for categories-Based Sequence generator
     CategoriesModel should perform better for this generator
+    TODO : parameter for transitions (determinist)
+    TODO : locations with multiple categories
 """
 import SequenceGenerator
 import random
+import ast
 from numpy.random import choice
 
 
@@ -19,7 +22,6 @@ class CategoriesBasedGenerator(SequenceGenerator.SequenceGenerator):
         	    Size of the underlying network linked to the alphabet. alphabet_size > categories_size
         	stop_prob: float [0,1]
         		Probability to stop a sequence during its generation
-
         	'''
         self.alphabet_size = alphabet_size
         self.categories_size = categories_size
@@ -38,42 +40,33 @@ class CategoriesBasedGenerator(SequenceGenerator.SequenceGenerator):
             self.categories.append('C'+str(l))
 
         #assign 1 time each categories randomly
+        random_list = random.sample(self.locations, self.categories_size)
         for j in range(self.categories_size):
-            empty_location = [k for k, v in self.locations.iteritems() if v is None]
-            value = random.randint(0,len(empty_location)-1)
-            self.locations[empty_location[value]] = 'C'+str(j)
+            self.locations[random_list[j]] = 'C'+str(j)
 
         #assigns each empty location left
         empty_location = [k for k, v in self.locations.iteritems() if v is None]
         for k in empty_location:
             self.locations[str(k)] = 'C'+ str(random.randint(0,self.categories_size-1))
 
-    def get_pair_value(self, list):
-        val = random.randint(0, len(list) - 1)
-        cat = list[val]
-        list.pop(val)
-        return list, cat
-
     def generateTransitions(self):
-        cpt_cat = list(self.categories)
         for k in range(0,self.categories_size):
-            #create pairs of probability which the sum equals to 1
-            r = [random.random() for i in range(1, 3)]
+            proba = ""
+            #create a given number of probability which the sum equals to 1
+            r = [random.random() for i in range(0,  self.categories_size)]
             s = sum(r)
             r = [i / s for i in r]
-            #ensure that every categories appear at least once somewhere
-            if len(cpt_cat)!=0:
-                # get pairs of categories
-                cpt_cat, cat1 = self.get_pair_value(cpt_cat)
-                cpt_cat, cat2 = self.get_pair_value(cpt_cat)
-                self.transitions['C'+str(k)] = {cat1: r[0], cat2: r[1]}
-            #assigns transitions randomly
-            else:
-                cat1 =str(random.randint(0,self.categories_size-1))
-                cat2 = str(random.randint(0,self.categories_size-1))
-                while cat1 is cat2:
-                    cat2 = str(random.randint(0, self.categories_size-1))
-                self.transitions['C' + str(k)] = {'C'+cat1: r[0], 'C'+cat2: r[1]}
+            for j in range(0,self.categories_size):
+                if j == 0:
+                    proba += '{ \'C' + str(j) + '\': ' + str(r[j]) + ', '
+                elif j != self.categories_size-1:
+                    proba +='\'C'+ str(j)+'\': '+str(r[j])+', '
+                else :
+                    proba+= '\'C'+ str(j)+'\': '+str(r[j])+'}'
+            #convert the string dictionary into a real dictionary
+            dict = ast.literal_eval(proba)
+            self.transitions['C' + str(k)] = dict
+
 
     def nextSymbol(self, context=[]):
         '''
