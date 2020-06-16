@@ -82,7 +82,6 @@ def readTextByLines(filename) :
 	file.close()
 	return sequences
 
-######################################################################################
 def writeSequences(self, sequences, filename, sep = ' '):
 	file = open(filename,'w')
 	id_seq = 0
@@ -97,3 +96,30 @@ def writeSequences(self, sequences, filename, sep = ' '):
 		file.write(str_seq)
 		id_seq += 1
 	file.close()
+
+######################################################################################
+
+def getCategories(filename, col_id, col_cat, sep = ',', header = True):
+	categories = dict()
+	file = open(filename,'r')
+	count_line = 0
+	# col_id = 4
+	# col_cat = 5			#5/Name_Loyds - 0/Continent - 3/Country
+	for line in file :
+		if header :
+			if count_line == 0:
+				count_line += 1
+				continue
+		if len(line) == 0:
+			count_line += 1
+			continue
+		count_line += 1
+		split_line = line.strip().split(sep)
+		if split_line[col_cat] == "" :
+			continue
+		id = split_line[col_id]
+		cat = split_line[col_cat]
+		categories[id] = cat
+
+	file.close()
+	return categories

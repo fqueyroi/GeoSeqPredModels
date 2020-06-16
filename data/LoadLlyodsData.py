@@ -11,33 +11,11 @@ def getLocations():
 	locations = IOUtils.readLocations(locations_file_path,4,6,7)
 	return locations
 ################################################################################
-def getCategories():
-	filename = os.path.dirname(__file__)+'/Lloyds_maritime/table_places.csv'
-	categories = dict()
-	file = open(filename,'r')
-	count_line = 0
-	header = True
-	col_id = 4
-	col_cat = 5			#5/Name_Loyds - 0/Continent - 3/Country
-	sep = ','
-	for line in file :
-		if header :
-			if count_line == 0:
-				count_line += 1
-				continue
-		if len(line) == 0:
-			count_line += 1
-			continue
-		count_line += 1
-		split_line = line.strip().split(sep)
-		if split_line[col_cat] == "" :
-			continue
-		id = split_line[col_id]
-		cat = split_line[col_cat]
-		categories[id] = cat
 
-	file.close()
-	return categories
+def getCategories():
+    locations_file_path = os.path.dirname(__file__)+'/Lloyds_maritime/table_places.csv'
+    categories = IOUtils.getCategories(locations_file_path, 4, 5)
+    return categories
 
 ################################################################################
 

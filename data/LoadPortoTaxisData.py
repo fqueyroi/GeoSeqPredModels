@@ -25,5 +25,13 @@ def getLocations():
 	locations = IOUtils.readLocations(locations_file_path,0,3,4,sep=',',header=False)
 	return locations
 ################################################################################
-print len(getSequences(True, 0))
-print len(getLocations())
+def getCategories():
+	locations_file_path = os.path.dirname(__file__)+'/Porto_Taxis/poi_locations.csv'
+	categories = IOUtils.getCategories(locations_file_path,0,2,sep=',',header=False)
+	return categories
+
+################################################################################
+
+# print len(getSequences(True, 0))
+# print len(getLocations())
+# print getCategories()

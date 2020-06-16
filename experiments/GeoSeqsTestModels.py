@@ -24,8 +24,8 @@ import LoadLlyodsData
 ### PARAMETERS
 ### (Should list all variables for the experiments)
 len_test = 3
-# dataset = 'PortoTaxis'
-dataset = 'Ports'
+dataset = 'PortoTaxis'
+# dataset = 'Ports'
 min_k = 1  ## minimum context length
 max_k = 3  ## maximum context length
 
@@ -41,6 +41,7 @@ if dataset == 'PortoTaxis':
     dist_fun = GeoFixOrderModel.Dists[GeoFixOrderModel.DistCalc.EUCLIDIAN]
     sequences = LoadPortoTaxisData.getSequences(False, 0)
     sequences = DataModUtils.removeRepetitions(sequences)
+    categories = LoadPortoTaxisData.getCategories()
     locations = LoadPortoTaxisData.getLocations()
 if dataset == 'Ports':
     sequences = LoadLlyodsData.getSequences()
@@ -130,10 +131,10 @@ for i in range(min_k, max_k + 1):
     for seq in training:
         geo_zp.learn(seq)
 
-    if dataset == 'Ports':
-        cat = CategoriesModel.CategoriesModel(i, alphabet, categories)
-        for seq in training:
-            cat.learn(seq)
+
+    cat = CategoriesModel.CategoriesModel(i, alphabet, categories)
+    for seq in training:
+        cat.learn(seq)
 
     probs_ppmc = averageProbNextKSymbols(ppmc, test_contexts, testing, len_test)
     print str(ppmc)
@@ -165,10 +166,9 @@ for i in range(min_k, max_k + 1):
     print "	probs : "+ SeqStats.str_probs(probs_geo_zp)
     print "	size  : " + str(geo_zp.size())
 
-    if dataset == 'Ports':
-        probs_cat = averageProbNextKSymbols(cat, test_contexts, testing, len_test)
-        print str(cat)
-        print "	probs : " + SeqStats.str_probs(probs_cat)
-        print "	size  : " + str(cat.size())
+    probs_cat = averageProbNextKSymbols(cat, test_contexts, testing, len_test)
+    print str(cat)
+    print "	probs : " + SeqStats.str_probs(probs_cat)
+    print "	size  : " + str(cat.size())
 
     print
