@@ -13,24 +13,35 @@ import FixOrderModel
 import ThereAndBackModel
 import GeoFixOrderModel
 import HONModel
+import CategoriesModel
 
 ## TODO: For each "geo-model" write a random generator where the model
 ##		the model should be the best
 sys.path.append(''.join([os.path.dirname(__file__), '/..', '/data/generators/']))
 import LocationBasedGenerator
+import CategoriesBasedGenerator
 
+
+choices = ["Location","Categories"]
+generator = choices[0]
 
 ### PARAMETERS
 ### (Should list all variables for the experiments)
 min_k = 1 ## minimum context length
 max_k = 1 ## maximum context length
 len_test = 2
-sigma =  0.01
-dist_fun = GeoFixOrderModel.Dists[GeoFixOrderModel.DistCalc.EUCLIDIAN]
 
 ## Generate datasets
-gen = LocationBasedGenerator.LocationBasedGenerator(alphabet_size = 100, stop_prob = 0.1,sigma = sigma)
-locations = gen.locations
+if generator == "Location":
+	gamma =  0.01
+	dist_fun = GeoFixOrderModel.Dists[GeoFixOrderModel.DistCalc.EUCLIDIAN]
+	gen = LocationBasedGenerator.LocationBasedGenerator(alphabet_size = 100, stop_prob = 0.1,gamma = gamma)
+	locations = gen.locations
+elif generator == "Categories":
+	gen = CategoriesBasedGenerator.CategoriesBasedGenerator(alphabet_size = 100, categories_size=70, stop_prob = 0.1)
+	categories = gen.locations
+	locations = gen.locations.keys()
+
 sequences =  gen.generate(400)
 sequences = DataModUtils.removeRepetitions(sequences)
 
@@ -59,9 +70,10 @@ def averageProbNextKSymbols(model, test_contexts, test_seqs, k):
 			res[j] += p_temp / (len(test_seqs) + 0.)
 	return res
 
-## Init variables of GeoFixOrderModel
-max_d = GeoFixOrderModel.getMaxDistance(locations, dist_fun)
-sum_d = GeoFixOrderModel.sumDensities(alphabet, locations, sigma, max_d, dist_fun)
+if generator == "Location":
+	## Init variables of GeoFixOrderModel
+	max_d = GeoFixOrderModel.getMaxDistance(locations, dist_fun)
+	sum_d = GeoFixOrderModel.sumDensities(alphabet, locations, gamma, max_d, dist_fun)
 
 for i in range(min_k, max_k + 1):
 	ppmc = PPMCModel.PPMCModel(i, alphabet)
@@ -81,15 +93,21 @@ for i in range(min_k, max_k + 1):
 	for seq in training:
 		fix.learn(seq)
 
-	geo = GeoFixOrderModel.GeoFixOrderModel(i, alphabet, locations, sigma,
-			dist_fun, max_d, sum_d,False)
-	for seq in training:
-		geo.learn(seq)
+	if generator == "Location":
+		geo = GeoFixOrderModel.GeoFixOrderModel(i, alphabet, locations, gamma,
+				dist_fun, max_d, sum_d,False)
+		for seq in training:
+			geo.learn(seq)
 
-	geo_zp = GeoFixOrderModel.GeoFixOrderModel(i, alphabet, locations, sigma,
-			dist_fun, max_d, sum_d,True)
-	for seq in training:
-		geo_zp.learn(seq)
+		geo_zp = GeoFixOrderModel.GeoFixOrderModel(i, alphabet, locations, gamma,
+				dist_fun, max_d, sum_d,True)
+		for seq in training:
+			geo_zp.learn(seq)
+	elif generator == "Categories":
+		cat = CategoriesModel.CategoriesModel(i, alphabet, categories)
+		for seq in training:
+			cat.learn(seq)
+
 
 	probs_ppmc = averageProbNextKSymbols(ppmc, test_contexts, testing, len_test)
 	print str(ppmc)
@@ -111,14 +129,21 @@ for i in range(min_k, max_k + 1):
 	print "	probs : "+ SeqStats.str_probs(probs_hon)
 	print "	size  : " + str(hon.size())
 
-	probs_geo = averageProbNextKSymbols(geo, test_contexts, testing, len_test)
-	print str(geo)
-	print "	probs : "+ SeqStats.str_probs(probs_geo)
-	print "	size  : " + str(geo.size())
+	if generator == "Location":
+		probs_geo = averageProbNextKSymbols(geo, test_contexts, testing, len_test)
+		print str(geo)
+		print "	probs : "+ SeqStats.str_probs(probs_geo)
+		print "	size  : " + str(geo.size())
 
-	probs_geo_zp = averageProbNextKSymbols(geo_zp, test_contexts, testing, len_test)
-	print str(geo_zp)+' ZERO PROB'
-	print "	probs : "+ SeqStats.str_probs(probs_geo_zp)
-	print "	size  : " + str(geo_zp.size())
+		probs_geo_zp = averageProbNextKSymbols(geo_zp, test_contexts, testing, len_test)
+		print str(geo_zp)+' ZERO PROB'
+		print "	probs : "+ SeqStats.str_probs(probs_geo_zp)
+		print "	size  : " + str(geo_zp.size())
+
+	elif generator == "Categories":
+		probs_cat = averageProbNextKSymbols(cat, test_contexts, testing, len_test)
+		print str(cat)
+		print "	probs : " + SeqStats.str_probs(probs_cat)
+		print "	size  : " + str(cat.size())
 
 	print
