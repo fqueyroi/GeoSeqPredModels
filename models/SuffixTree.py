@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Suffix Tree
 """
-#TODO: use existing package ?
 
 from collections import Counter
 

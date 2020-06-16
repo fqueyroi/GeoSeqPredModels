@@ -4,7 +4,6 @@
 	sequences up to a given length (class member "maxContextLength")
 	for a given alphabet (class member "alphabet")
 """
-## TODO: write a model that use known categories about symbols (countries, continent etc.) 
 
 import SuffixTree as trie
 

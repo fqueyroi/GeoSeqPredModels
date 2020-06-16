@@ -20,7 +20,6 @@ class CategoriesModel(FixOrderModel.FixOrderModel):
         		seq: list of str
         			The sequence of symbols to use
         		"""
-        ## TODO this is a mess
         if len(seq) == 0:
             ## does nothing
             return

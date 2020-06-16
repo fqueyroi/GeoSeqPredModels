@@ -15,8 +15,6 @@ import GeoFixOrderModel
 import HONModel
 import CategoriesModel
 
-## TODO: For each "geo-model" write a random generator where the model
-##		the model should be the best
 sys.path.append(''.join([os.path.dirname(__file__), '/..', '/data/generators/']))
 import LocationBasedGenerator
 import CategoriesBasedGenerator

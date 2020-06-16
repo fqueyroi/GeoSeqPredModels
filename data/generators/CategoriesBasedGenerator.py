@@ -9,7 +9,7 @@ import random
 import ast
 from numpy.random import choice
 
-
+## TODO: add a parameter to tune the randomness of the transitions
 class CategoriesBasedGenerator(SequenceGenerator.SequenceGenerator):
 
     def __init__(self, alphabet_size=100,categories_size=30, stop_prob=0.1):
@@ -64,7 +64,8 @@ class CategoriesBasedGenerator(SequenceGenerator.SequenceGenerator):
                 else :
                     proba+= '\'C'+ str(j)+'\': '+str(r[j])+'}'
             #convert the string dictionary into a real dictionary
-            dict = ast.literal_eval(proba)
+			##TODO: directly compute the dict instead of using the literal_eval
+			dict = ast.literal_eval(proba)
             self.transitions['C' + str(k)] = dict
 
 
