@@ -24,18 +24,23 @@ def findBestSpread(alphabet, locations, training, testing,
 	best_gamma = max_gamma
 	for n in range(nb_recur):
 		cur_gamma = best_gamma
-		for i in range(9):
-			gamma = (i+1)*cur_gamma/10.
+		next_gammas = [cur_gamma + (i+1)/(10. ** (n+1)) for i in range(9)]
+		next_gammas.extend([cur_gamma - (i+1)/(10. ** (n+1)) for i in range(9)])
+		for gamma in next_gammas:
 			sum_d = GeoFixOrderModel.sumDensities(alphabet, locations, gamma, max_d, dist_fun)
 			model = GeoFixOrderModel.GeoFixOrderModel(1, alphabet, locations, gamma,
 				dist_fun, max_d, sum_d, False)
 			for seq in training:
 				model.learn(seq)
 			score = eval_fun(model, testing)
-			# print 'g = '+str(gamma)+' s = '+str(round(score*100,2))
+			# print '	g = '+str(gamma)+' ss = '+str(round(score*100,4))
 			if score > max_score:
-				best_gamma = gamma
+				cur_gamma = gamma
 				max_score = score
+		# print 'cur_g = '+str(cur_gamma)+' best_s = '+str(round(max_score*100,4))
+		if cur_gamma == best_gamma:
+			break
+		best_gamma = cur_gamma
 	return best_gamma, max_score
 
 # import FixOrderModel
@@ -46,11 +51,11 @@ def findBestSpread(alphabet, locations, training, testing,
 # import LocationBasedGenerator
 #
 # print 'gamma,n,score_fix,gamma_geo,score_geo'
-# for i in range(10):
-# 	gamma = 1./ (10. ** i)
-# 	for j in range(5):
-# 		for k in range(10):
-# 			n = 50 + 50*j
+# for i in range(1):
+# 	gamma = 2./ (10. ** (i+1))
+# 	for j in range(1):
+# 		for k in range(1):
+# 			n = 100*(j+1)
 # 			## Generate datasets
 # 			gen = LocationBasedGenerator.LocationBasedGenerator(alphabet_size = n, stop_prob = 0.1,gamma = gamma)
 # 			locations = gen.locations
@@ -71,4 +76,4 @@ def findBestSpread(alphabet, locations, training, testing,
 #
 # 			b_gamma, b_score = findBestSpread(alphabet, locations, training, testing)
 #
-# 			print str(gamma)+','+str(n)+','+str(score_fix)+','+str(b_gamma)+','+str(b_score)
+# 			print str(gamma)+','+str(n)+','+str(round(score_fix*100,2))+','+str(b_gamma)+','+str(round(b_score*100,2))
