@@ -1,5 +1,5 @@
 '''
-Main program to run tests on geographical sequences
+Main program to run tests on geographical sequences on Porto_Taxis data set
 '''
 ## TODO: write specific code for import methods for each dataset
 
@@ -19,18 +19,16 @@ import HONModel
 
 sys.path.append(''.join([os.path.dirname(__file__), '/..', '/data/']))
 import LoadPortoTaxisData
-import LoadLlyodsData
 
 ### PARAMETERS
 ### (Should list all variables for the experiments)
 len_test = 3
 dataset = 'PortoTaxis'
-# dataset = 'Ports'
 min_k = 1  ## minimum context length
 max_k = 3  ## maximum context length
 
 ## for Geo models
-## TODO: Use search procedure to automatically find the best gamma value
+# TODO: Use search procedure to automatically find the best gamma value
 ## (findBestSpreadGeo)
 gamma = 0.0000001
 dist_fun = GeoFixOrderModel.Dists[GeoFixOrderModel.DistCalc.HAVERSINE]
@@ -44,28 +42,17 @@ if dataset == 'PortoTaxis':
     sequences = DataModUtils.removeRepetitions(sequences)
     categories = LoadPortoTaxisData.getCategories()
     locations = LoadPortoTaxisData.getLocations()
-if dataset == 'Ports':
-    sequences = LoadLlyodsData.getSequences()
-    sequences = DataModUtils.removeRepetitions(sequences)
-    locations = LoadLlyodsData.getLocations()
-    categories = LoadLlyodsData.getCategories()
-    sequences = LoadLlyodsData.filterSequences(sequences, categories)
+
 
 print "Nb Seqs : " + str(len(sequences))
 
 ### Create Training/Testing subsets
 training, test_contexts, testing = [], [], []
-if dataset == 'PortoTaxis':
-    training, testing = DataModUtils.cutEndOfSequences(sequences, len_test)
-    test_contexts = training
-if dataset == 'Ports':
-    training, testing = DataModUtils.cutEndOfSequences(sequences, len_test)
-    test_contexts = training
+training, testing = DataModUtils.cutEndOfSequences(sequences, len_test)
+test_contexts = training
 
 ### Get the unique list of symbols found in sequences
 alphabet = SeqStats.symbols(sequences)
-if dataset == 'Ports':
-    alphabet = LoadLlyodsData.filterAlphabet(alphabet, categories)
 
 print "Nb Symbols : " + str(len(alphabet))
 
@@ -77,10 +64,10 @@ for a in alphabet:
 locations = loc_temp
 print "Nb Locations :" + str(len(locations.keys()))
 
-
-## TODO: test with functions in file EvalFunctions
+# TODO: test with functions in file EvalFunctions
 ### Set functions use to compare models
 def averageProbNextKSymbols(model, test_contexts, test_seqs, k):
+
     res = [0 for i in range(k)]
     order = model.maxContextLength
     for i in range(len(test_seqs)):

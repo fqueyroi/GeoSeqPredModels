@@ -44,3 +44,23 @@ def removeRepetitions(sequences):
 				nseq.append(s)
 		nsequences.append(nseq)
 	return nsequences
+################################################################################
+
+def filterAlphabet(alphabet, categories):
+	filtered_alp = []
+	for i in alphabet:
+		if i in categories:
+			filtered_alp.append(i)
+	return filtered_alp
+################################################################################
+
+def filterSequences(sequences, categories):
+	filtered_seq = []
+	valid=True
+	for i in range(len(sequences)):
+		for j in range(len(sequences[i])):
+			if sequences[i][j] not in categories:
+				valid =False
+		if valid == True:
+			filtered_seq.append(sequences[i])
+	return filtered_seq
