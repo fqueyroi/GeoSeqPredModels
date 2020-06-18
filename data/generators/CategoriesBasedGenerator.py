@@ -6,13 +6,13 @@
 """
 import SequenceGenerator
 import random
-import ast
+import numpy
 from numpy.random import choice
 
 ## TODO: add a parameter to tune the randomness of the transitions
 class CategoriesBasedGenerator(SequenceGenerator.SequenceGenerator):
 
-    def __init__(self, alphabet_size=100,categories_size=30, stop_prob=0.1):
+    def __init__(self, alphabet_size=100,categories_size=30, stop_prob=0.1, alpha=0.5):
         '''
             Parameters:
         	-----------
@@ -22,6 +22,8 @@ class CategoriesBasedGenerator(SequenceGenerator.SequenceGenerator):
         	    Size of the underlying network linked to the alphabet. alphabet_size > categories_size
         	stop_prob: float [0,1]
         		Probability to stop a sequence during its generation
+        	alpha
+        	    Parameter of the transitions randomness if alpha=1 uniform transitions
         	'''
         self.alphabet_size = alphabet_size
         self.categories_size = categories_size
@@ -29,6 +31,7 @@ class CategoriesBasedGenerator(SequenceGenerator.SequenceGenerator):
         self.categories = []
         self.transitions = {}
         self.stop_prob = stop_prob
+        self.alpha = alpha
         self.generateLocations()
         self.generateTransitions()
 
@@ -51,22 +54,10 @@ class CategoriesBasedGenerator(SequenceGenerator.SequenceGenerator):
 
     def generateTransitions(self):
         for k in range(0,self.categories_size):
-            proba = ""
-            #create a given number of probability which the sum equals to 1
-            r = [random.random() for i in range(0,  self.categories_size)]
-            s = sum(r)
-            r = [i / s for i in r]
-            for j in range(0,self.categories_size):
-                if j == 0:
-                    proba += '{ \'C' + str(j) + '\': ' + str(r[j]) + ', '
-                elif j != self.categories_size-1:
-                    proba +='\'C'+ str(j)+'\': '+str(r[j])+', '
-                else :
-                    proba+= '\'C'+ str(j)+'\': '+str(r[j])+'}'
-            #convert the string dictionary into a real dictionary
-			##TODO: directly compute the dict instead of using the literal_eval
-			dict = ast.literal_eval(proba)
-            self.transitions['C' + str(k)] = dict
+            alpha = [self.alpha for i in range(self.categories_size)]
+            r = numpy.random.dirichlet(alpha)
+            transitions =  dict(zip(self.categories, r))
+            self.transitions['C' + str(k)] = transitions
 
 
     def nextSymbol(self, context=[]):
@@ -117,11 +108,11 @@ class CategoriesBasedGenerator(SequenceGenerator.SequenceGenerator):
 
 
 
-# gen = CategoriesBasedGenerator(alphabet_size = 7, categories_size=4, stop_prob = 0.1)
-# print gen.categories
-# print gen.locations
-# print gen.transitions
-#
-# sequences = gen.generate(5)
-# for s in sequences:
-# 	print s
+gen = CategoriesBasedGenerator(alphabet_size = 7, categories_size=4, stop_prob = 0.1, alpha=0.2)
+print gen.categories
+print gen.locations
+print gen.transitions
+
+sequences = gen.generate(5)
+for s in sequences:
+	print s
