@@ -14,6 +14,7 @@ import ThereAndBackModel
 import GeoFixOrderModel
 import HONModel
 import CategoriesModel
+import CategoriesAndSymbolModel
 
 sys.path.append(''.join([os.path.dirname(__file__), '/..', '/data/generators/']))
 import LocationBasedGenerator
@@ -21,7 +22,7 @@ import CategoriesBasedGenerator
 
 
 choices = ["Location","Categories"]
-generator = choices[0]
+generator = choices[1]
 
 ### PARAMETERS
 ### (Should list all variables for the experiments)
@@ -36,7 +37,7 @@ if generator == "Location":
 	gen = LocationBasedGenerator.LocationBasedGenerator(alphabet_size = 100, stop_prob = 0.1,gamma = gamma)
 	locations = gen.locations
 elif generator == "Categories":
-	gen = CategoriesBasedGenerator.CategoriesBasedGenerator(alphabet_size = 100, categories_size=70, stop_prob = 0.1)
+	gen = CategoriesBasedGenerator.CategoriesBasedGenerator(alphabet_size = 100, categories_size=70, stop_prob = 0.1, alpha = 0.1)
 	categories = gen.locations
 	locations = gen.locations.keys()
 
@@ -106,6 +107,10 @@ for i in range(min_k, max_k + 1):
 		for seq in training:
 			cat.learn(seq)
 
+		catS = CategoriesAndSymbolModel.CategoriesAndSymbolModel(i, alphabet, categories)
+		for seq in training:
+			catS.learn(seq)
+
 
 	probs_ppmc = averageProbNextKSymbols(ppmc, test_contexts, testing, len_test)
 	print str(ppmc)
@@ -134,7 +139,7 @@ for i in range(min_k, max_k + 1):
 		print "	size  : " + str(geo.size())
 
 		probs_geo_zp = averageProbNextKSymbols(geo_zp, test_contexts, testing, len_test)
-		print str(geo_zp)+' ZERO PROB'
+		print str(geo_zp)+' ZERO PRO'
 		print "	probs : "+ SeqStats.str_probs(probs_geo_zp)
 		print "	size  : " + str(geo_zp.size())
 
@@ -143,5 +148,10 @@ for i in range(min_k, max_k + 1):
 		print str(cat)
 		print "	probs : " + SeqStats.str_probs(probs_cat)
 		print "	size  : " + str(cat.size())
+
+		probs_catS = averageProbNextKSymbols(catS, test_contexts, testing, len_test)
+		print str(catS)
+		print "	probs : " + SeqStats.str_probs(probs_catS)
+		print "	size  : " + str(catS.size())
 
 	print

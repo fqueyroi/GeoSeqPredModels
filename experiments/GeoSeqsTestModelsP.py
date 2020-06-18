@@ -16,6 +16,8 @@ import ThereAndBackModel
 import GeoFixOrderModel
 import CategoriesModel
 import HONModel
+import CategoriesAndSymbolModel
+
 
 sys.path.append(''.join([os.path.dirname(__file__), '/..', '/data/']))
 import LoadLlyodsData
@@ -119,6 +121,10 @@ for i in range(min_k, max_k + 1):
     for seq in training:
         cat.learn(seq)
 
+    catS = CategoriesAndSymbolModel.CategoriesAndSymbolModel(i, alphabet, categories)
+    for seq in training:
+        catS.learn(seq)
+
     probs_ppmc = averageProbNextKSymbols(ppmc, test_contexts, testing, len_test)
     print str(ppmc)
     print "	probs : " + SeqStats.str_probs(probs_ppmc)
@@ -153,5 +159,11 @@ for i in range(min_k, max_k + 1):
     print str(cat)
     print "	probs : " + SeqStats.str_probs(probs_cat)
     print "	size  : " + str(cat.size())
+
+    probs_catS = averageProbNextKSymbols(catS, test_contexts, testing, len_test)
+    print str(catS)
+    print "	probs : " + SeqStats.str_probs(probs_catS)
+    print "	size  : " + str(catS.size())
+
 
     print

@@ -11,7 +11,7 @@ class CategoriesAndSymbolModel(FixOrderModel.FixOrderModel):
         self.categories = categories
 
     def __str__(self):
-        return "Categories Model(" + str(self.maxContextLength) + ")"
+        return "Categories and Symbol Model(" + str(self.maxContextLength) + ")"
 
     def learn(self, seq):
         """ Use to the sequence 'seq' to train the model
@@ -52,10 +52,13 @@ class CategoriesAndSymbolModel(FixOrderModel.FixOrderModel):
     def probability(self, symbol, context):
         if len(context) == 1:
             return super(CategoriesAndSymbolModel, self).probability(symbol, context)
-        else:
+        elif len(context) > 1 :
+            # print context
             cat_context = [self.categories[s] for s in context[:-1]]
             cat_context.append(context[-1])
             return super(CategoriesAndSymbolModel, self).probability(symbol, cat_context)
+        else:
+            return 0
 
 
 # seq = 'abracadabra'

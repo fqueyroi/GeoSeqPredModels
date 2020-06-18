@@ -108,11 +108,11 @@ class CategoriesBasedGenerator(SequenceGenerator.SequenceGenerator):
 
 
 
-gen = CategoriesBasedGenerator(alphabet_size = 7, categories_size=4, stop_prob = 0.1, alpha=0.2)
-print gen.categories
-print gen.locations
-print gen.transitions
-
-sequences = gen.generate(5)
-for s in sequences:
-	print s
+# gen = CategoriesBasedGenerator(alphabet_size = 7, categories_size=4, stop_prob = 0.1, alpha=0.2)
+# print gen.categories
+# print gen.locations
+# print gen.transitions
+#
+# sequences = gen.generate(5)
+# for s in sequences:
+# 	print s
