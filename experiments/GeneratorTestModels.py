@@ -19,10 +19,11 @@ import CategoriesAndSymbolModel
 sys.path.append(''.join([os.path.dirname(__file__), '/..', '/data/generators/']))
 import LocationBasedGenerator
 import CategoriesBasedGenerator
+import CategoriesAndSymbolBasedGenerator
 
 
-choices = ["Location","Categories"]
-generator = choices[1]
+choices = ["Location","Categories", "CatgoriesSymb"]
+generator = choices[2]
 
 ### PARAMETERS
 ### (Should list all variables for the experiments)
@@ -40,6 +41,11 @@ elif generator == "Categories":
 	gen = CategoriesBasedGenerator.CategoriesBasedGenerator(alphabet_size = 100, categories_size=70, stop_prob = 0.1, alpha = 0.1)
 	categories = gen.locations
 	locations = gen.locations.keys()
+elif generator == "CatgoriesSymb":
+	gen =CategoriesAndSymbolBasedGenerator.CategoriesAndSymbolBasedGenerator(alphabet_size=100, categories_size=70, stop_prob=0.1, alpha=0.1)
+	categories = gen.locations
+	locations = gen.locations.keys()
+
 
 sequences =  gen.generate(400)
 sequences = DataModUtils.removeRepetitions(sequences)
@@ -102,7 +108,7 @@ for i in range(min_k, max_k + 1):
 				dist_fun, max_d, sum_d,True)
 		for seq in training:
 			geo_zp.learn(seq)
-	elif generator == "Categories":
+	elif generator == "Categories" or generator == "CatgoriesSymb":
 		cat = CategoriesModel.CategoriesModel(i, alphabet, categories)
 		for seq in training:
 			cat.learn(seq)
@@ -143,7 +149,7 @@ for i in range(min_k, max_k + 1):
 		print "	probs : "+ SeqStats.str_probs(probs_geo_zp)
 		print "	size  : " + str(geo_zp.size())
 
-	elif generator == "Categories":
+	elif generator == "Categories" or generator == "CatgoriesSymb":
 		probs_cat = averageProbNextKSymbols(cat, test_contexts, testing, len_test)
 		print str(cat)
 		print "	probs : " + SeqStats.str_probs(probs_cat)
