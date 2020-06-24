@@ -1,22 +1,19 @@
 import os
 import IOUtils
 ################################################################################
-def getSequences(all_weeks = True, week = 0):
+def getSequences(min_length = 2):
+	'''
+	Load Taxi trips in file reported in file trajectories_amenity.csv
+	with a length of at least min_length.
+	Note: if DataModUtils.removeRepetitions is called on the results
+		  some sequences may be of length < min_length
+	'''
 	filepath_traces  = os.path.dirname(__file__)+'/Porto_Taxis/trajectories_amenity.csv'
-	sequences = IOUtils.readFile(filepath_traces)
-
-	# dir_traces  = os.path.dirname(__file__)+'/Porto_Taxis/trajectories/'
-	# list_traces = []
-	# if all_weeks:
-	# 	list_traces = [dir_traces+'/'+f for f in os.listdir(dir_traces) if os.path.isfile(os.path.join(dir_traces, f))]
-	# else:
-	# 	week_traces_file = dir_traces+str(week)+'.csv'
-	# 	list_traces.append(week_traces_file)
-	#
-	# sequences = []
-	# for file_path in list_traces:
-	# 	temp_sequences = IOUtils.readFile(file_path)
-	# 	sequences += temp_sequences
+	temp_seqs = IOUtils.readFile(filepath_traces)
+	sequences = []
+	for s in temp_seqs:
+		if len(s)>=min_length:
+			sequences.append(s)
 	return sequences
 ################################################################################
 def getLocations():
@@ -32,6 +29,6 @@ def getCategories():
 
 ################################################################################
 
-# print len(getSequences(True, 0))
+# print len(getSequences())
 # print len(getLocations())
 # print getCategories()

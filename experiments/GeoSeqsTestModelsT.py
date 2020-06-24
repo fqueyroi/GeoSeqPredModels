@@ -40,7 +40,7 @@ sequences = []
 locations = []
 if dataset == 'PortoTaxis':
     dist_fun = GeoFixOrderModel.Dists[GeoFixOrderModel.DistCalc.EUCLIDIAN]
-    sequences = LoadPortoTaxisData.getSequences(False, 0)
+    sequences = LoadPortoTaxisData.getSequences(min_length=2)
     sequences = DataModUtils.removeRepetitions(sequences)
     categories = LoadPortoTaxisData.getCategories()
     locations = LoadPortoTaxisData.getLocations()
