@@ -24,7 +24,7 @@ def getLocations():
 ################################################################################
 def getCategories():
 	locations_file_path = os.path.dirname(__file__)+'/Porto_Taxis/poi_locations.csv'
-	categories = IOUtils.getCategories(locations_file_path,0,2,sep=',',header=False)
+	categories = IOUtils.getCategories(locations_file_path,0,5,sep=',',header=False)
 	return categories
 
 ################################################################################
