@@ -4,6 +4,7 @@ Contains procedures used to test the prediction models
 ## TODO: Create one using the distance between prediction and real location
 ## TODO: Use these function in experiments scripts
 
+import random
 ################################################################################
 def averageProbNextSymbol(model, test_seqs):
 	'''
