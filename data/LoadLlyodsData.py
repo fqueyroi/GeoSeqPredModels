@@ -14,7 +14,8 @@ def getLocations():
 
 def getCategories():
     locations_file_path = os.path.dirname(__file__)+'/Lloyds_maritime/table_places.csv'
-    categories = IOUtils.getCategories(locations_file_path, 4, 5)
+	## Use col. COUNTRY as cateogry (could test with AREA1 also)
+    categories = IOUtils.getCategories(locations_file_path, 4, 3)
     return categories
 
 ################################################################################
@@ -25,6 +26,3 @@ def getCategories():
 # print sequences
 # print categories
 # print getLocations()
-
-
-
