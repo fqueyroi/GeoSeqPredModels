@@ -8,27 +8,27 @@ import random
 ################################################################################
 def averageProbNextSymbol(model, test_seqs):
 	'''
-	Return the average probability to correctly predicting the next symbol
-	starting at a random point in each test sequence using the previous
-	symbols as context.
+	Return the average probability to correctly predicting the symbol
+	at a random position in [0,len(sequence)-1]
+	in each test sequence using the previous symbols as context.
 	Return:
 	-------
 		res: float
 	'''
+	## TODO: check different between models with different maxContextLength
+	##		when starting at a random point  in position
+	##		[maxContextLength,len(sequence)]
 	res = 0.
-	order = model.maxContextLength
 	for i in range(len(test_seqs)):
 		seq = test_seqs[i]
-		if len(seq)>=2:
-			symbol = seq[-1]
-			context = seq[:-1]
-			if order >= len(seq):
-				t_seq = random.randint(order,len(seq)-1)
-				symbol = seq[t_seq]
-				context = seq[:t_seq]
+		if len(seq) > 1:
+			t_seq = random.randint(0,len(seq)-1)
+			context = seq[:t_seq]
+			symbol = seq[t_seq]
 			prob = model.probability(symbol,context)
 			res += prob / (len(test_seqs) + 0.)
 	return res
+
 
 ################################################################################
 def averageProbAllSymbols(model, test_seqs):
@@ -39,16 +39,13 @@ def averageProbAllSymbols(model, test_seqs):
 	-------
 		res: float
 	'''
+	## TODO: check different between models with different maxContextLength
+	##		when starting in position maxContextLength
 	res = 0.
-	order = model.maxContextLength
 	for i in range(len(test_seqs)):
 		seq = test_seqs[i]
-		for j in range(len(seq)):
-			context = []
-			if j > 1:
-				context = seq[:j]
-			prob = model.probability(seq[j],context)
-			res += prob / (len(seq) + 0.)
+		probs = model.probabilites(seq)
+		res += sum(probs) / (len(seq) + 0.)
 	return res / (len(test_seqs) + 0.)
 
 
