@@ -53,14 +53,17 @@ class CategoriesAndSymbolBasedGenerator(SequenceGenerator.SequenceGenerator):
             self.locations[str(k)] = 'C'+ str(random.randint(0,self.categories_size-1))
 
     def generateTransitions(self):
+        alpha = [self.alpha for i in range(self.alphabet_size)]
         for j in range(self.categories_size):
             for k in range(self.alphabet_size):
-                alpha = [self.alpha for i in range(self.alphabet_size)]
                 r = numpy.random.dirichlet(alpha)
-                transitions =  dict(zip(self.locations, r))
+                # transitions =  dict(zip(self.locations, r))
+                ## speed-up by removing low probability
+                thres = 1. / (4.*self.alphabet_size)
+                r = [x for x in r if x > thres]
+                to_loc = random.sample(self.locations.keys(),len(r))
+                transitions =  dict(zip(to_loc, r / sum(r)))
                 self.transitions[('C' + str(j), str(k))] = transitions
-
-
 
     def nextSymbol(self, context=[]):
         '''
@@ -70,8 +73,7 @@ class CategoriesAndSymbolBasedGenerator(SequenceGenerator.SequenceGenerator):
             - one previous locations: a location is chosen based on the previous category
         '''
         if len(context) < 2:
-            nextSymbol = random.randint(0, self.alphabet_size - 1)
-            return self.locations.keys()[nextSymbol]
+            return random.choice(self.locations.keys())
         else:
             pairs = self.transitions[(context[0], context[1])]
             nextLoc = choice(pairs.keys(), 1, p=pairs.values())
@@ -103,12 +105,15 @@ class CategoriesAndSymbolBasedGenerator(SequenceGenerator.SequenceGenerator):
         return sequences
 
 
-
-# gen = CategoriesAndSymbolBasedGenerator(alphabet_size = 4, categories_size=2, stop_prob = 0.1, alpha=0.2)
+# import time
+# start_time = time.time()
+# gen = CategoriesAndSymbolBasedGenerator(alphabet_size = 2500, categories_size=41, stop_prob = 0.1, alpha=0.2)
+# print "Init time: " + str(time.time() - start_time)
 # print gen.categories
 # print gen.locations
 # print gen.transitions
-#
-# sequences = gen.generate(5)
+# start_time = time.time()
+# sequences = gen.generate(1000)
+# print "Gen time: " + str(time.time() - start_time)
 # for s in sequences:
 # 	print s
