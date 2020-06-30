@@ -1,7 +1,7 @@
 
 import sys, os
 import itertools
-
+import collections
 sys.path.append(''.join([os.path.dirname(__file__), '/..']))
 import DataModUtils
 import SeqStats
@@ -21,7 +21,7 @@ import HierarchicalReturnGenerator
 def learning(func_table, base, min_k, max_k, len_test, training, testing):
     result = []
     for k, v in func_table.iteritems():
-        result_func= dict.fromkeys(['model','k', 'score_1', 'score_2', 'score_3'])
+        result_func= dict.fromkeys(['model','k', 'score_1', 'score_2'])
         result_func.update(base)
         func, args, name = func_table[k]
 
@@ -63,6 +63,15 @@ for i in values:
         "prob_return_node": prob_return_node
     }
 
+    ordered_dict = collections.OrderedDict()
+    ordered_dict['model'] = None
+    ordered_dict['alphabet_size'] = None
+    ordered_dict['stop_prob'] = None
+    ordered_dict['prob_return_node'] = None
+    ordered_dict['k'] = None
+    ordered_dict['score_1'] = None
+    ordered_dict['score_2'] = None
+
     ## Generate datasets
     gen = HierarchicalReturnGenerator.HierarchicalReturnGenerator(alphabet_size=i[1], k=i[2], stop_prob=stop_prob, prob_return_node=prob_return_node)
     locations = gen.network
@@ -92,7 +101,7 @@ for i in values:
 #write result in a file
 path_seq_file = sys.path[0] + '/RES_Return_Generator.csv'
 with open(path_seq_file, 'w') as seq_file:
-    csv_writer = csv.DictWriter(seq_file, result[0][0].keys())
+    csv_writer = csv.DictWriter(seq_file, ordered_dict.keys())
     csv_writer.writeheader()
     for i in result:
         for j in i:

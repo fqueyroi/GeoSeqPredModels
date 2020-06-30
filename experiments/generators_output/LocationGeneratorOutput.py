@@ -1,6 +1,7 @@
 
 import sys, os
 import itertools
+import collections
 sys.path.append(''.join([os.path.dirname(__file__), '/..']))
 import DataModUtils
 import SeqStats
@@ -22,7 +23,7 @@ import LocationBasedGenerator
 def learning(func_table, base, min_k, max_k, len_test, training, testing):
     result = []
     for k, v in func_table.iteritems():
-        result_func= dict.fromkeys(['model','k', 'score_1', 'score_2', 'score_3'])
+        result_func= dict.fromkeys(['model','k', 'score_1', 'score_2'])
         result_func.update(base)
         func, args, name = func_table[k]
 
@@ -62,6 +63,14 @@ for i in values:
         "stop_prob": stop_prob,
         "gamma": gamma
     }
+    ordered_dict = collections.OrderedDict()
+    ordered_dict['model'] = None
+    ordered_dict['alphabet_size'] = None
+    ordered_dict['stop_prob'] = None
+    ordered_dict['gamma'] = None
+    ordered_dict['k'] = None
+    ordered_dict['score_1'] = None
+    ordered_dict['score_2'] = None
 
     ## Generate datasets
     dist_fun = GeoFixOrderModel.Dists[GeoFixOrderModel.DistCalc.EUCLIDIAN]
@@ -95,10 +104,11 @@ for i in values:
     }
     result.append(learning(func_table, base,min_k, i[0], len_test, training, testing))
 
+
 #write result in a file
 path_seq_file = sys.path[0] + '/RES_Location_Generator.csv'
 with open(path_seq_file, 'w') as seq_file:
-    csv_writer = csv.DictWriter(seq_file, result[0][0].keys())
+    csv_writer = csv.DictWriter(seq_file, ordered_dict.keys())
     csv_writer.writeheader()
     for i in result:
         for j in i:
