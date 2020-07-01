@@ -49,19 +49,18 @@ def learning(func_table, base, min_k, max_k, len_test, training, testing):
 min_k = 1  ## minimum context length
 max_k = [1,2,3]  ## maximum context length
 len_test = 2
-a_size = [100, 1000, 10000]
+a_size = [100,1000]
+gamma = [10**(-i) for i in range(4)]
 stop_prob = 0.1
-gamma = 0.01
 result = []
 
-
-values =  list(itertools.product(max_k, a_size))
+values =  list(itertools.product(max_k, a_size, gamma))
 
 for i in values:
     base = {
         "alphabet_size": i[1],
         "stop_prob": stop_prob,
-        "gamma": gamma
+        "gamma": i[2]
     }
     ordered_dict = collections.OrderedDict()
     ordered_dict['model'] = None
@@ -74,7 +73,7 @@ for i in values:
 
     ## Generate datasets
     dist_fun = GeoFixOrderModel.Dists[GeoFixOrderModel.DistCalc.EUCLIDIAN]
-    gen = LocationBasedGenerator.LocationBasedGenerator(alphabet_size=i[1], stop_prob=stop_prob, gamma=gamma)
+    gen = LocationBasedGenerator.LocationBasedGenerator(alphabet_size=i[1], stop_prob=stop_prob, gamma=i[2])
     locations = gen.locations
 
     sequences = gen.generate(400)
@@ -92,18 +91,25 @@ for i in values:
     test_contexts = training
 
     max_d = GeoFixOrderModel.getMaxDistance(locations, dist_fun)
-    sum_d = GeoFixOrderModel.sumDensities(alphabet, locations, gamma, max_d, dist_fun)
+    sum_d = GeoFixOrderModel.sumDensities(alphabet, locations, i[2], max_d, dist_fun)
 
     func_table = {
         1: (PPMCModel.PPMCModel, [alphabet], "PPMC"),
         2: (ThereAndBackModel.ThereAndBackModel, [alphabet], "There And Back"),
         3: (HONModel.HONModel, [alphabet], "HON"),
         4: (FixOrderModel.FixOrderModel, [alphabet], "Fix Order"),
-        5: (GeoFixOrderModel.GeoFixOrderModel, [alphabet, locations, gamma, dist_fun, max_d, sum_d,False], "GeoFix Order"),
-        6: (GeoFixOrderModel.GeoFixOrderModel, [alphabet, locations, gamma, dist_fun, max_d, sum_d,True], "GeoFix Order Zero")
     }
+
     result.append(learning(func_table, base,min_k, i[0], len_test, training, testing))
 
+    for j in range(len(gamma)):
+        func_table_geo = {
+            1: (GeoFixOrderModel.GeoFixOrderModel, [alphabet, locations, gamma[j], dist_fun, max_d, sum_d, False],
+                "GeoFix Order"),
+            2: (GeoFixOrderModel.GeoFixOrderModel, [alphabet, locations, gamma[j], dist_fun, max_d, sum_d, True],
+                "GeoFix Order Zero")
+        }
+        result.append(learning(func_table_geo, base, min_k, i[0], len_test, training, testing))
 
 #write result in a file
 path_seq_file = sys.path[0] + '/RES_Location_Generator.csv'
