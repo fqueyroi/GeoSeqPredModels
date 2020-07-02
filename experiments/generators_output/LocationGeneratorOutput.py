@@ -19,18 +19,26 @@ sys.path.append(''.join([os.path.dirname(__file__), '/../..', '/data/generators/
 import LocationBasedGenerator
 
 
-#train each models and return the results
-def learning(func_table, base, min_k, max_k, len_test, training, testing):
+def learning(func_table, base, context_lengths, len_test, training, testing):
+    '''
+    Parameters:
+    -----------
+    func_table:
+        table with the models
+    base:
+        dictionary with all test informations by model
+
+    :return: completed dictionary
+    '''
     result = []
     for k, v in func_table.iteritems():
-        result_func= dict.fromkeys(['model','k', 'score_1', 'score_2'])
-        result_func.update(base)
+        result_func = base.copy()
+        ##Get informations and train each model
         func, args, name = func_table[k]
 
-        for i in range(min_k, max_k + 1):
-            model = func(i, *args)
-            for seq in training:
-                model.learn(seq)
+        model = func(context_lengths, *args)
+        for seq in training:
+            model.learn(seq)
 
         func1 = EvalFunctions.averageProbNextSymbol(model, testing)
         func2 = EvalFunctions.averageProbAllSymbols(model, testing)
@@ -46,30 +54,27 @@ def learning(func_table, base, min_k, max_k, len_test, training, testing):
 
 ### PARAMETERS
 ### (Should list all variables for the experiments)
-min_k = 1  ## minimum context length
-max_k = [1,2,3]  ## maximum context length
+context_lengths = [1,2,3]
 len_test = 2
-a_size = [100,1000]
-gamma = [10**(-i) for i in range(4)]
-stop_prob = 0.1
+a_size = [100,1000]                         #Alphabet size
+gamma = [10**(-i) for i in range(4)]        #Preference for far locations
+stop_prob = 0.1                             #Probability to stop a sequence
+testing_ratio = 0.1                         #Sequence separation ratio
+
 result = []
 
-values =  list(itertools.product(max_k, a_size, gamma))
+values = list(itertools.product(context_lengths, a_size, gamma))
 
 for i in values:
-    base = {
-        "alphabet_size": i[1],
-        "stop_prob": stop_prob,
-        "gamma": i[2]
-    }
-    ordered_dict = collections.OrderedDict()
-    ordered_dict['model'] = None
-    ordered_dict['alphabet_size'] = None
-    ordered_dict['stop_prob'] = None
-    ordered_dict['gamma'] = None
-    ordered_dict['k'] = None
-    ordered_dict['score_1'] = None
-    ordered_dict['score_2'] = None
+
+    base = collections.OrderedDict()
+    base['model'] = None
+    base['alphabet_size'] =i[1]
+    base['stop_prob'] = stop_prob
+    base['gamma'] = i[2]
+    base['k'] = None
+    base['score_1'] = None
+    base['score_2'] = None
 
     ## Generate datasets
     dist_fun = GeoFixOrderModel.Dists[GeoFixOrderModel.DistCalc.EUCLIDIAN]
@@ -87,7 +92,7 @@ for i in values:
 
     ### Create Training/Testing subsets
     training, test_contexts, testing = [], [], []
-    training, testing = DataModUtils.cutEndOfSequences(sequences, len_test)
+    training, testing = DataModUtils.sampleSequences(sequences, testing_ratio)
     test_contexts = training
 
     max_d = GeoFixOrderModel.getMaxDistance(locations, dist_fun)
@@ -98,23 +103,18 @@ for i in values:
         2: (ThereAndBackModel.ThereAndBackModel, [alphabet], "There And Back"),
         3: (HONModel.HONModel, [alphabet], "HON"),
         4: (FixOrderModel.FixOrderModel, [alphabet], "Fix Order"),
+        5: (GeoFixOrderModel.GeoFixOrderModel, [alphabet, locations, i[2], dist_fun, max_d, sum_d, False],
+                "GeoFix Order")
     }
 
-    result.append(learning(func_table, base,min_k, i[0], len_test, training, testing))
+    result.append(learning(func_table, base, i[0], len_test, training, testing))
 
-    for j in range(len(gamma)):
-        func_table_geo = {
-            1: (GeoFixOrderModel.GeoFixOrderModel, [alphabet, locations, gamma[j], dist_fun, max_d, sum_d, False],
-                "GeoFix Order"),
-            2: (GeoFixOrderModel.GeoFixOrderModel, [alphabet, locations, gamma[j], dist_fun, max_d, sum_d, True],
-                "GeoFix Order Zero")
-        }
-        result.append(learning(func_table_geo, base, min_k, i[0], len_test, training, testing))
 
-#write result in a file
+
+##Write result in a file
 path_seq_file = sys.path[0] + '/RES_Location_Generator.csv'
 with open(path_seq_file, 'w') as seq_file:
-    csv_writer = csv.DictWriter(seq_file, ordered_dict.keys())
+    csv_writer = csv.DictWriter(seq_file, base.keys())
     csv_writer.writeheader()
     for i in result:
         for j in i:

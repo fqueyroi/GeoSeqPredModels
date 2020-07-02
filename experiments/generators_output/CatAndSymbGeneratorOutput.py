@@ -20,18 +20,26 @@ import EvalFunctions
 sys.path.append(''.join([os.path.dirname(__file__), '/../..', '/data/generators/']))
 import CategoriesAndSymbolBasedGenerator
 
-#train each models and return the results
-def learning(func_table, base, min_k, max_k, len_test, training, testing):
+def learning(func_table, base, context_lengths, len_test, training, testing):
+    '''
+    Parameters:
+    -----------
+    func_table:
+        table with the models
+    base:
+        dictionary with all test informations by model
+
+    :return: completed dictionary
+    '''
     result = []
     for k, v in func_table.iteritems():
-        result_func= dict.fromkeys(['model','k', 'score_1', 'score_2'])
-        result_func.update(base)
+        result_func = base.copy()
+        ##Get informations and train each model
         func, args, name = func_table[k]
 
-        for i in range(min_k, max_k + 1):
-            model = func(i, *args)
-            for seq in training:
-                model.learn(seq)
+        model = func(context_lengths, *args)
+        for seq in training:
+            model.learn(seq)
 
         func1 = EvalFunctions.averageProbNextSymbol(model, testing)
         func2 = EvalFunctions.averageProbAllSymbols(model, testing)
@@ -46,35 +54,29 @@ def learning(func_table, base, min_k, max_k, len_test, training, testing):
 
 ### PARAMETERS
 ### (Should list all variables for the experiments)
-min_k = 1  ## minimum context length
-max_k = [1,2,3]  ## maximum context length
+context_lengths = [1,2,3]
 len_test = 2
-a_size = [100, 1000]
-stop_prob = 0.1
-cat_size = [30, 100]
-alpha = 0.1
+a_size = [100, 1000]            #Alphabet size
+cat_size = [30, 100]            #Numbers of categories
+stop_prob = 0.1                 #Probability to stop a sequence
+alpha = 0.1                     #Transitions randomness
+testing_ratio = 0.1             #Sequence separation ratio
+
 result = []
 
-values =  list(itertools.product(max_k, a_size, cat_size))
-
+values = list(itertools.product(context_lengths, a_size, cat_size))
 
 for i in values:
-    base = {
-        "alphabet_size": i[1],
-        "stop_prob": stop_prob,
-        "categories_size": i[2],
-        "alpha": alpha
-    }
 
-    ordered_dict = collections.OrderedDict()
-    ordered_dict['model'] = None
-    ordered_dict['alphabet_size'] = None
-    ordered_dict['stop_prob'] = None
-    ordered_dict['k'] = None
-    ordered_dict['categories_size'] = None
-    ordered_dict['alpha'] = None
-    ordered_dict['score_1'] = None
-    ordered_dict['score_2'] = None
+    base = collections.OrderedDict()
+    base['model'] = None
+    base['alphabet_size'] = i[1]
+    base['stop_prob'] = stop_prob
+    base['k'] = None
+    base['categories_size'] = i[2]
+    base['alpha'] = alpha
+    base['score_1'] = None
+    base['score_2'] = None
 
     ## Generate datasets
     gen = CategoriesAndSymbolBasedGenerator.CategoriesAndSymbolBasedGenerator(alphabet_size=i[1], categories_size=i[2],
@@ -93,7 +95,7 @@ for i in values:
 
     ### Create Training/Testing subsets
     training, test_contexts, testing = [], [], []
-    training, testing = DataModUtils.cutEndOfSequences(sequences, len_test)
+    training, testing = DataModUtils.sampleSequences(sequences, testing_ratio)
     test_contexts = training
 
     func_table = {
@@ -102,15 +104,15 @@ for i in values:
         3: (HONModel.HONModel, [alphabet], "HON"),
         4: (FixOrderModel.FixOrderModel, [alphabet], "Fix Order"),
         5: (CategoriesModel.CategoriesModel, [alphabet, categories], "Categories"),
-        6: (CategoriesAndSymbolModel.CategoriesAndSymbolModel, [alphabet, categories], "Categories dans Symbol")
+        6: (CategoriesAndSymbolModel.CategoriesAndSymbolModel, [alphabet, categories], "Categories and Symbol")
     }
 
-    result.append(learning(func_table, base,min_k, i[0], len_test, training, testing))
+    result.append(learning(func_table, base, i[0], len_test, training, testing))
 
-#write result in a file
+##Write result in a file
 path_seq_file = sys.path[0] + '/RES_CatAndSymbols_Generator.csv'
 with open(path_seq_file, 'w') as seq_file:
-    csv_writer = csv.DictWriter(seq_file, ordered_dict.keys())
+    csv_writer = csv.DictWriter(seq_file, base.keys())
     csv_writer.writeheader()
     for i in result:
         for j in i:
