@@ -18,7 +18,7 @@ sys.path.append(''.join([os.path.dirname(__file__), '/../..', '/data/generators/
 import HierarchicalReturnGenerator
 
 #train each models and return the results
-def learning(func_table, base, context_lengths, len_test, training, testing):
+def learning(func_table, base, context_lengths, training, testing, repeat):
     '''
     Parameters:
     -----------
@@ -30,24 +30,25 @@ def learning(func_table, base, context_lengths, len_test, training, testing):
     :return: completed dictionary
     '''
     result = []
-    for k, v in func_table.iteritems():
-        result_func = base.copy()
-        ##Get informations and train each model
-        func, args, name = func_table[k]
+    for i in range(repeat):
+        for k, v in func_table.iteritems():
+            result_func = base.copy()
+            ##Get informations and train each model
+            func, args, name = func_table[k]
 
-        model = func(context_lengths, *args)
-        for seq in training:
-            model.learn(seq)
+            model = func(context_lengths, *args)
+            for seq in training:
+                model.learn(seq)
 
-        func1 = EvalFunctions.averageProbNextSymbol(model, testing)
-        func2 = EvalFunctions.averageProbAllSymbols(model, testing)
+            func1 = EvalFunctions.averageProbNextSymbol(model, testing)
+            func2 = EvalFunctions.averageProbAllSymbols(model, testing)
 
-        print str(model)
-        print "	probs averageProbNextSymbol: " + str(round(func1 * 100., 2))
-        print "	probs averageProbAllSymbols: " + str(round(func2 * 100., 2))
+            print str(model)
+            print "	probs averageProbNextSymbol: " + str(round(func1 * 100., 2))
+            print "	probs averageProbAllSymbols: " + str(round(func2 * 100., 2))
 
-        result_func.update({'model': name, 'k': len_test, 'score_1': str(round(func1 * 100., 2)), 'score_2': str(round(func2 * 100., 2))})
-        result.append(result_func)
+            result_func.update({'model': name, 'k': context_lengths, 'score_1': str(round(func1 * 100., 2)), 'score_2': str(round(func2 * 100., 2))})
+            result.append(result_func)
     return result
 
 
@@ -55,12 +56,13 @@ def learning(func_table, base, context_lengths, len_test, training, testing):
 ### PARAMETERS
 ### (Should list all variables for the experiments)
 context_lengths = [1,2,3]
-len_test = 2
 a_size = [100, 1000, 10000]         #Alphabet size
 k_values = [3,5,7]                  #Average number of new connexion in the network
 stop_prob = 0.1                     #Probability to stop a sequence
 prob_return_node = 0.1              #Ratio of return node in the network
 testing_ratio = 0.1                 #Sequence separation ratio
+repeat = 20
+
 
 result = []
 
@@ -100,7 +102,7 @@ for i in values:
         3: (HONModel.HONModel, [alphabet], "HON"),
         4: (FixOrderModel.FixOrderModel, [alphabet], "Fix Order"),
     }
-    result.append(learning(func_table, base, i[0], len_test, training, testing))
+    result.append(learning(func_table, base, i[0], training, testing, repeat))
 
 ##Write result in a file
 path_seq_file = sys.path[0] + '/RES_Return_Generator.csv'

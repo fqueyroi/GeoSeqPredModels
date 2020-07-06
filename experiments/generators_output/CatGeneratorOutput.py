@@ -19,7 +19,7 @@ import EvalFunctions
 sys.path.append(''.join([os.path.dirname(__file__), '/../..', '/data/generators/']))
 import CategoriesBasedGenerator
 
-def learning(func_table, base, context_lengths, len_test, training, testing):
+def learning(func_table, base, context_lengths, training, testing, repeat):
     '''
     Parameters:
     -----------
@@ -31,35 +31,37 @@ def learning(func_table, base, context_lengths, len_test, training, testing):
     :return: completed dictionary
     '''
     result = []
-    for k, v in func_table.iteritems():
-        result_func = base.copy()
-        ##Get informations and train each model
-        func, args, name = func_table[k]
+    for i in range(repeat):
+        for k, v in func_table.iteritems():
+            result_func = base.copy()
+            ##Get informations and train each model
+            func, args, name = func_table[k]
 
-        model = func(context_lengths, *args)
-        for seq in training:
-            model.learn(seq)
+            model = func(context_lengths, *args)
+            for seq in training:
+                model.learn(seq)
 
-        func1 = EvalFunctions.averageProbNextSymbol(model, testing)
-        func2 = EvalFunctions.averageProbAllSymbols(model, testing)
+            func1 = EvalFunctions.averageProbNextSymbol(model, testing)
+            func2 = EvalFunctions.averageProbAllSymbols(model, testing)
 
-        print str(model)
-        print "	probs averageProbNextSymbol: " + str(round(func1 * 100., 2))
-        print "	probs averageProbAllSymbols: " + str(round(func2 * 100., 2))
+            print str(model)
+            print "	probs averageProbNextSymbol: " + str(round(func1 * 100., 2))
+            print "	probs averageProbAllSymbols: " + str(round(func2 * 100., 2))
 
-        result_func.update({'model': name, 'k': len_test, 'score_1': str(round(func1 * 100., 2)), 'score_2': str(round(func2 * 100., 2))})
-        result.append(result_func)
+            result_func.update({'model': name, 'k': context_lengths, 'score_1': str(round(func1 * 100., 2)), 'score_2': str(round(func2 * 100., 2))})
+            result.append(result_func)
     return result
 
 ### PARAMETERS
 ### (Should list all variables for the experiments)
 context_lengths = [1,2,3]
-len_test = 2
 a_size = [100, 1000, 10000]         #Alphabet size
 cat_size = [30,70,100]              #Numbers of categories
 stop_prob = 0.1                     #Probability to stop a sequence
 alpha = 0.1                         #Transitions randomness
 testing_ratio = 0.1                 #Sequence separation ratio
+repeat = 20
+
 
 result = []
 
@@ -107,7 +109,7 @@ for i in values:
         5: (CategoriesModel.CategoriesModel, [alphabet, categories], "Categories"),
         6: (CategoriesAndSymbolModel.CategoriesAndSymbolModel, [alphabet, categories], "Categories and Symbol")
     }
-    result.append(learning(func_table, base, i[0], len_test, training, testing))
+    result.append(learning(func_table, base, i[0], training, testing, repeat))
 
 ##Write result in a file
 path_seq_file = sys.path[0] + '/RES_Categories_Generator.csv'
