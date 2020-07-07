@@ -27,7 +27,7 @@ sys.path.append(''.join([os.path.dirname(__file__), '/..', '/data/']))
 import LoadPortoTaxisData
 
 
-def learning(func_table, base, context_lengths, training, testing, repeat):
+def learning(func_table, base, context_lengths, training, testing):
     '''
     Parameters:
     -----------
@@ -39,25 +39,25 @@ def learning(func_table, base, context_lengths, training, testing, repeat):
     :return: completed dictionary
     '''
     result = []
-    for i in range(repeat):
-        for k, v in func_table.iteritems():
-            result_func = base.copy()
-            ##Get informations and train each model
-            func, args, name = func_table[k]
 
-            model = func(context_lengths, *args)
-            for seq in training:
-                model.learn(seq)
+    for k, v in func_table.iteritems():
+        result_func = base.copy()
+        ##Get informations and train each model
+        func, args, name = func_table[k]
 
-            func1 = EvalFunctions.averageProbNextSymbol(model, testing)
-            func2 = EvalFunctions.averageProbAllSymbols(model, testing)
+        model = func(context_lengths, *args)
+        for seq in training:
+            model.learn(seq)
 
-            print str(model)
-            print "	probs averageProbNextSymbol: " + str(round(func1 * 100., 2))
-            print "	probs averageProbAllSymbols: " + str(round(func2 * 100., 2))
+        func1 = EvalFunctions.averageProbNextSymbol(model, testing)
+        func2 = EvalFunctions.averageProbAllSymbols(model, testing)
 
-            result_func.update({'model': name, 'k': context_lengths, 'score_1': str(round(func1 * 100., 2)), 'score_2': str(round(func2 * 100., 2))})
-            result.append(result_func)
+        print str(model)
+        print "	probs averageProbNextSymbol: " + str(round(func1 * 100., 2))
+        print "	probs averageProbAllSymbols: " + str(round(func2 * 100., 2))
+
+        result_func.update({'model': name, 'k': context_lengths, 'score_1': str(round(func1 * 100., 2)), 'score_2': str(round(func2 * 100., 2))})
+        result.append(result_func)
     return result
 
 ### PARAMETERS
@@ -66,7 +66,6 @@ context_lengths = [1,2,3]
 min_k = 1  ## minimum context length
 max_k = 3  ## maximum context length
 testing_ratio = 0.1
-repeat = 20
 
 result = []
 
@@ -132,7 +131,7 @@ for i in context_lengths:
     base['score_1'] = None
     base['score_2'] = None
 
-    result.append(learning(func_table, base, i, training, testing, repeat))
+    result.append(learning(func_table, base, i, training, testing))
 
 ##Write result in a file
 path_seq_file = sys.path[0] + '/RES_Taxis_Model.csv'
