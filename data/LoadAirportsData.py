@@ -13,10 +13,20 @@ def getCategories():
 	return categories
 
 ################################################################################
+def getLocations():
+	locations_file_path   = os.path.dirname(__file__)+'/DB1BAirports/MASTER_CORD.csv'
+	# locations = IOUtils.readLocations(locations_file_path,0,1,2,sep=',',header=False)
+	locations = IOUtils.readLocations(locations_file_path,0,1,2,sep=',',header=True)
+	return locations
+################################################################################
+
+
 # sequences = getSequences()
 # print len(sequences)
 # print sequences[0]
-# # print len(getLocations())
 # categories = getCategories()
 # print len(categories)
 # print categories
+# locations = getLocations()
+# print len(locations)
+# print locations

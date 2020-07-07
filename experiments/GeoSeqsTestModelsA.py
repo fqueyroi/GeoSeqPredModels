@@ -16,6 +16,7 @@ sys.path.append(''.join([os.path.dirname(__file__), '/..', '/models/']))
 import PPMCModel
 import FixOrderModel
 import ThereAndBackModel
+import GeoFixOrderModel
 import CategoriesModel
 import HONModel
 import CategoriesAndSymbolModel
@@ -64,13 +65,22 @@ testing_ratio = 0.1
 
 result = []
 
+## for Geo models
+# TODO: Use search procedure to automatically find the best gamma value
+## (findBestSpreadGeo)
+gamma = 0.0000001
+dist_fun = GeoFixOrderModel.Dists[GeoFixOrderModel.DistCalc.HAVERSINE]
+
 ### Load Dataset
 sequences = []
+locations = []
 
 sequences = LoadAirportsData.getSequences()
 sequences = DataModUtils.removeRepetitions(sequences)
+locations = LoadAirportsData.getLocations()
 categories = LoadAirportsData.getCategories()
 sequences = DataModUtils.filterSequences(sequences, categories)
+
 
 print "Nb Seqs : " + str(len(sequences))
 
@@ -86,13 +96,26 @@ alphabet = DataModUtils.filterAlphabet(alphabet, categories)
 
 print "Nb Symbols : " + str(len(alphabet))
 
+### Filter locations (to match alphabet)
+loc_temp = dict()
+for a in alphabet:
+    if a in locations.keys():
+        loc_temp[a] = locations[a]
+locations = loc_temp
+
+## Init variables of GeoFixOrderModel
+max_d = GeoFixOrderModel.getMaxDistance(locations, dist_fun)
+sum_d = GeoFixOrderModel.sumDensities(alphabet, locations, gamma, max_d, dist_fun)
+
 func_table = {
     1: (PPMCModel.PPMCModel, [alphabet], "PPMC"),
     2: (ThereAndBackModel.ThereAndBackModel, [alphabet], "There And Back"),
     3: (HONModel.HONModel, [alphabet], "HON"),
     4: (FixOrderModel.FixOrderModel, [alphabet], "Fix Order"),
     5: (CategoriesModel.CategoriesModel, [alphabet, categories], "Categories"),
-    6: (CategoriesAndSymbolModel.CategoriesAndSymbolModel, [alphabet, categories], "Categories and Symbol")
+    6: (CategoriesAndSymbolModel.CategoriesAndSymbolModel, [alphabet, categories], "Categories and Symbol"),
+    7: (GeoFixOrderModel.GeoFixOrderModel, [alphabet, locations, gamma, dist_fun, max_d, sum_d, False],
+                "GeoFix Order")
 }
 
 for i in context_lengths :
@@ -102,6 +125,7 @@ for i in context_lengths :
     base['alphabet_size'] = len(alphabet)
     base['k'] = None
     base['categories_size'] = len(categories)
+    base['gamma'] = gamma
     base['score_1'] = None
     base['score_2'] = None
 
