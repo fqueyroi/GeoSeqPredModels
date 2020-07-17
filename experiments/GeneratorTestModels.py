@@ -22,7 +22,7 @@ import CategoriesBasedGenerator
 import CategoriesAndSymbolBasedGenerator
 
 
-choices = ["Location","Categories", "CatgoriesSymb"]
+choices = ["Location","Categories", "CategoriesSymb"]
 generator = choices[2]
 
 ### PARAMETERS
@@ -41,7 +41,7 @@ elif generator == "Categories":
 	gen = CategoriesBasedGenerator.CategoriesBasedGenerator(alphabet_size = 100, categories_size=70, stop_prob = 0.1, alpha = 0.1)
 	categories = gen.locations
 	locations = gen.locations.keys()
-elif generator == "CatgoriesSymb":
+elif generator == "CategoriesSymb":
 	gen =CategoriesAndSymbolBasedGenerator.CategoriesAndSymbolBasedGenerator(alphabet_size=100, categories_size=70, stop_prob=0.1, alpha=0.1)
 	categories = gen.locations
 	locations = gen.locations.keys()
@@ -108,7 +108,7 @@ for i in range(min_k, max_k + 1):
 				dist_fun, max_d, sum_d,True)
 		for seq in training:
 			geo_zp.learn(seq)
-	elif generator == "Categories" or generator == "CatgoriesSymb":
+	elif generator == "Categories" or generator == "CategoriesSymb":
 		cat = CategoriesModel.CategoriesModel(i, alphabet, categories)
 		for seq in training:
 			cat.learn(seq)
@@ -149,7 +149,7 @@ for i in range(min_k, max_k + 1):
 		print "	probs : "+ SeqStats.str_probs(probs_geo_zp)
 		print "	size  : " + str(geo_zp.size())
 
-	elif generator == "Categories" or generator == "CatgoriesSymb":
+	elif generator == "Categories" or generator == "CategoriesSymb":
 		probs_cat = averageProbNextKSymbols(cat, test_contexts, testing, len_test)
 		print str(cat)
 		print "	probs : " + SeqStats.str_probs(probs_cat)
