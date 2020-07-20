@@ -26,7 +26,7 @@ class HONModel(PredModel.PredModel):
 		'''
 		self.maxContextLength = maxContextLength
 		self.alphabet = alphabet
-		self.tree = HONSuffixTree.HONSuffixNode('', None, 0)  ## root node with dummy symbol
+		self.tree = HONSuffixTree.HONSuffixNode('', None, 0)  ## root node
 		self.use_lprefix = use_lprefix
 		self.valid_prefix = valid_prefix
 
@@ -34,24 +34,22 @@ class HONModel(PredModel.PredModel):
 		return "HON-Model("+str(self.maxContextLength)+")"
 
 	def size(self):
-		return self.tree.numberOfRules()
+		return self.tree.numberOfEntries()
 
 	def learn(self, seq):
 		super(HONModel, self).learn(seq)
 
 	def probabilityForSymbol(self, node, symbol):
 		tot_count_n = node.totalCount() + 0.
-		#### ESSAI POUR EVITER ZERO Proba
-		# nb_next_sym = node.numberNextSymbols()
-		# tot_sym = len(self.alphabet) + 0.
-		# if node[symbol] == 0 :
-		# 	return 1. / tot_sym
-		# else :
-		# 	return ((tot_sym - nb_next_sym) / tot_sym) * (node[symbol] / tot_count_n)
-		####
 		return node[symbol] / tot_count_n
 
 	def divergence(self, node, suffix_node):
+		'''
+		Compute the KL-divergence between the distribution of
+		node.counts and suffix_node.counts where suffix_node
+		is a suffix (parent) of node i.e. the similarity between the
+		distribution
+		'''
 		import math
 		if node.depth == 0:
 			return node.depth + 1.
@@ -64,11 +62,19 @@ class HONModel(PredModel.PredModel):
 		return res
 
 	def divergenceThreshold(self, node):
+		'''
+		Compute the threshold for the divergence with next-symbol distribution
+		of 'node'
+		'''
 		import math
 		tot_count_n = node.totalCount() + 0.
 		return node.depth / math.log(tot_count_n + 1., 2)
 
 	def prune(self):
+		'''
+		Filter the nodes in the suffix tree that are redundant i.e. there have
+		suffix node with a similar distribution.
+		'''
 		self.tree.is_rule = True
 		for k, c in self.tree.children.iteritems():
 			c.is_rule = True

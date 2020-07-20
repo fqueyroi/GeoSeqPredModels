@@ -37,31 +37,18 @@ class ThereAndBackModel(PredModel.PredModel):
 			context_node = self.tree.longestPrefix(context)
 		if context_node is None:
 			return 0.
-		# print " Sym = "+symbol+" con :"+str(context)
 		tot_count = context_node.totalCount() + 0.
 		current_p = context_node[symbol] / tot_count
 		for j in range(self.max_return):
-			# print " Order : "+ str(j+1)
 			if len(context) <= j + 1:
 				break
 			prev_sym = context[- (j + 2)]
-			# print "	 prev_sym : " + prev_sym
 			prob_return = self.return_counts[j][context[-1]] / tot_count
 			current_p = (1. - prob_return) * current_p
 			if prev_sym == symbol:
 				current_p += prob_return
 		return current_p
 
-		# tot_count = context_node.totalCount() + 0.
-		# if len(context) > 1:
-		# 	prev_sym = context[-2]
-		# 	prob_return = self.return_count[context[-1]] / tot_count
-		# 	res = (1. - prob_return) * (context_node[symbol] / tot_count)
-		# 	if prev_sym == symbol:
-		# 		# print " -> return"
-		# 		res += prob_return
-		# 	return res
-		# return context_node[symbol] / tot_count
 
 	def __str__(self):
 		return "ThereAndBack("+str(self.max_return)+")"
@@ -72,7 +59,7 @@ class ThereAndBackModel(PredModel.PredModel):
 			for k, c in self.return_counts[i].iteritems():
 				if c > 0:
 					no_zero_return += 1
-		return self.tree.numberOfNodes() + no_zero_return
+		return self.tree.numberOfEntries() + no_zero_return
 
 	def print_return_probs(self):
 		for i in range(self.max_return):
