@@ -10,7 +10,6 @@ import PredModel
 import HONSuffixTree
 
 class HONModel(PredModel.PredModel):
-	"""Main class for HON model"""
 
 	def __init__(self, maxContextLength, alphabet, use_lprefix = True, valid_prefix = False):
 		'''

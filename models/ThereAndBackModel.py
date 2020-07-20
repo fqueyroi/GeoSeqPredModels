@@ -1,15 +1,21 @@
 # -*- coding: utf-8 -*-
-""" Base class for There-and-Back model
+""" Base class for the There-and-Back model
 """
 
 import PredModel
 from collections import Counter
 
 class ThereAndBackModel(PredModel.PredModel):
-	"""
-	"""
+
 
 	def __init__(self, max_return, alphabet):
+		"""
+		Parameters:
+		-----------
+		max_return: int > 0
+			The model will compute the probability to return to symbols from
+			i-1 to i-max_return step.
+		"""
 		super(ThereAndBackModel, self).__init__(1, alphabet)
 		self.return_counts = [] ## order - 1 -> symbol -> number of returns
 		self.max_return = max_return

@@ -21,6 +21,16 @@ class SuffixNode(object):
 			res += v.numberOfNodes()
 		return res
 
+	def numberOfEntries(self):
+		'''
+		Return the total number of entries of self.counts
+		in the tree (recursive)
+		'''
+		res = len(self.counts)
+		for k,v in self.children.iteritems():
+			res += v.numberOfEntries()
+		return res
+	
 	def longestPrefix(self, seq):
 		'''
 		Return the node in the subtree whose symbol path is

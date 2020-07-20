@@ -156,6 +156,11 @@ class GeoFixOrderModel(PredModel.PredModel):
 			return 0.
 		return d_sym / sum_dens
 
+
+	def size(self):
+		return self.tree.numberOfEntries() + len(self.sum_d)
+
+
 	def __str__(self):
 		res = "Geo-Fixed-Order Model("
 		res += str(self.maxContextLength)

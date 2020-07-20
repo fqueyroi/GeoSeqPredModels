@@ -31,7 +31,6 @@ class PredModel(object):
 		seq: list of str
 			The sequence of symbols to use
 		"""
-		## TODO this is a mess
 		if len(seq) == 0:
 			## does nothing
 			return
@@ -65,9 +64,9 @@ class PredModel(object):
 
 	def size(self):
 		'''
-		Computes the size of the models (its "complexity")
+		Computes the size of the model
 		'''
-		return self.tree.numberOfNodes()
+		return self.tree.numberOfEntries()
 
 	def probability(self, symbol, context = []):
 		""" Returns the estimated probability

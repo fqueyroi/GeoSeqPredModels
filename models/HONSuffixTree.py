@@ -20,6 +20,14 @@ class HONSuffixNode(SuffixTree.SuffixNode):
 			res += v.numberOfRules()
 		return res
 
+	def numberOfEntries(self):
+		res = 0
+		if self.is_rule:
+			res = len(self.counts)
+		for k,v in self.children.iteritems():
+			res += v.numberOfEntries()
+		return res
+
 	def longestPrefix(self, seq):
 		res = self
 		current = self
